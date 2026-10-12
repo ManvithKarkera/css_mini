@@ -155,7 +155,8 @@ window.Lab = window.Lab || {};
     steps.forEach(function (st, i) {
       var li = document.createElement('li');
       li.className = guideDone[st.id] ? 'is-done' : (i === cur ? 'is-current' : '');
-      li.textContent = (guideDone[st.id] ? '✓ ' : '') + st.title + (st.required ? '' : ' (bonus)');
+      if (guideDone[st.id] && Lab.Icons && Lab.Icons.element) li.appendChild(Lab.Icons.element('check', 'term-guide__check'));
+      li.appendChild(document.createTextNode(st.title + (st.required ? '' : ' (bonus)')));
       ol.appendChild(li);
     });
     det.appendChild(ol); g.appendChild(det);

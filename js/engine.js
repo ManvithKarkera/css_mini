@@ -277,7 +277,7 @@ window.Lab = window.Lab || {};
       if (from !== state.serverState) {
         emit('serverStateChange', { from: from, to: state.serverState, t: t });
         log(state.serverState === 'Healthy' ? 'success' : (state.serverState === 'Unavailable' ? 'danger' : 'warn'),
-          'Server state changed: ' + from + ' → ' + state.serverState);
+          'Server state changed: ' + from + ' to ' + state.serverState);
       }
       [50, 90, 100].forEach(function (lvlPct) {
         var reached = lvlPct === 100 ? m.pending >= params.capacity : m.queueUtil >= lvlPct;

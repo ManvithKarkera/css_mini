@@ -55,6 +55,22 @@ window.Lab = window.Lab || {};
     shield: icon(
       '<path d="M12 3l7.5 2.7v5.6c0 4.4-3.1 8.2-7.5 9.7-4.4-1.5-7.5-5.3-7.5-9.7V5.7L12 3z"/>' +
       '<path d="M8.6 12l2.4 2.4 4.4-4.8"/>'
-    )
+    ),
+
+    check: icon('<path d="m5 12 4 4L19 6"/>'),
+    cross: icon('<path d="m6 6 12 12M18 6 6 18"/>'),
+    lock: icon('<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/>'),
+    warning: icon('<path d="m12 3 10 18H2L12 3z"/><path d="M12 9v5M12 18h.01"/>'),
+    info: icon('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+    arrowUp: icon('<path d="M12 19V5M6 11l6-6 6 6"/>'),
+    arrowDown: icon('<path d="M12 5v14m6-6-6 6-6-6"/>'),
+
+    element: function (name, className) {
+      var wrapper = document.createElement('span');
+      wrapper.innerHTML = Lab.Icons[name] || '';
+      var svg = wrapper.firstElementChild;
+      if (svg && className) svg.setAttribute('class', className);
+      return svg;
+    }
   };
 })(window.Lab);

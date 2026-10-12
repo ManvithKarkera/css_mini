@@ -162,6 +162,7 @@ dd { margin: 0; }
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow);
 }
+:root { --header-h: 128px; }
 #lab-header h1 {
   margin: 0;
   display: flex;
@@ -305,11 +306,11 @@ main.container > .section { margin: 0; min-width: 0; }
 .btn:disabled,
 .btn[aria-disabled="true"] {
   cursor: not-allowed;
-  opacity: 1;
+  opacity: 0.48;
   color: var(--color-muted);
   background: var(--color-surface-2);
   border-color: var(--color-border);
-  border-style: dashed;
+  border-style: solid;
   filter: none;
 }
 
@@ -397,7 +398,7 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
 
 /* ---- 7. Before You Begin / guidelines ---------------------------------- */
 .guidelines { padding: var(--space-6); }
-.guidelines > h2 { font-size: 1.5rem; }
+.guidelines > h2 { font-size: 1.375rem; margin-top: 0; }
 #lab-objective {
   margin-bottom: var(--space-4);
   padding: var(--space-3) var(--space-4);
@@ -439,7 +440,16 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
   border-radius: 50%;
 }
 .guidelines-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-4); }
-.guidelines .checkbox { margin-top: var(--space-2); }
+.guidelines .checkbox { margin-top: var(--space-3); }
+/* Style the acknowledgement checkbox more intentionally in the console theme */
+.checkbox input[type="checkbox"] {
+  flex: none;
+  width: 20px; height: 20px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  border-radius: 4px;
+}
 
 /* ---- 8. Theory ----------------------------------------------------------- */
 .theory h3 { margin-top: var(--space-5); font-size: 1.0625rem; color: var(--color-primary); }
@@ -513,7 +523,11 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
   border-style: dashed;
 }
 .step[data-status="locked"]::before, .step--locked::before { border-style: dashed; }
-.step[data-status="locked"]::after, .step--locked::after { content: "\1F512  Locked"; }
+.step[data-status="locked"]::after, .step--locked::after {
+  content: "Locked";
+  padding-left: 18px;
+  background: var(--icon-lock) left center / 14px 14px no-repeat;
+}
 
 /* ready: outlined in primary */
 .step[data-status="ready"], .step--ready {
@@ -544,9 +558,13 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
   border-color: var(--color-healthy);
 }
 .step[data-status="completed"]::before, .step--completed::before {
-  content: "\2713";
+  content: "";
   color: #ffffff;
   background: var(--color-healthy);
+  background-image: var(--icon-check);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
   border-color: var(--color-healthy);
 }
 .step[data-status="completed"]::after, .step--completed::after { content: "Done"; color: var(--color-healthy); }
@@ -585,7 +603,7 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
 .modal h2 { font-size: 1.375rem; }
 #modal-complete h2 { display: flex; align-items: center; gap: var(--space-3); }
 #modal-complete h2::before {
-  content: "\2713";
+  content: "";
   flex: none;
   display: grid;
   place-items: center;
@@ -593,6 +611,10 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
   font-size: 1.25rem;
   color: #ffffff;
   background: var(--color-healthy);
+  background-image: var(--icon-check);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 22px 22px;
   border-radius: 50%;
 }
 .modal dl { display: grid; margin: var(--space-4) 0; }
@@ -683,7 +705,13 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
   border: 1px dashed var(--color-pending);
   border-radius: var(--radius-sm);
 }
-.disclaimer::before { content: "\24D8"; font-weight: 700; line-height: 1.4; }
+.disclaimer::before {
+  content: "";
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: var(--icon-info) center / contain no-repeat;
+}
 .disclaimer:empty { display: none; }
 
 .handshake-list {
@@ -730,10 +758,12 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
 .analogy__title { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; }
 
 #btn-close-theory { margin-top: var(--space-2); }
+#btn-next-workspace { margin: var(--space-3) var(--space-2) 0 0; }
 #complete-message { color: var(--color-muted); margin: 0 0 var(--space-2); }
 
 .lab-footer { padding-top: 0; }
-.lab-footer p { margin: 0; font-size: 0.8125rem; color: var(--color-muted); text-align: center; }
+/* footer note duplicates the inline disclaimer — keep it minimal */
+.lab-footer p { margin: 0; font-size: 0.75rem; color: var(--color-muted); text-align: center; opacity: 0.6; }
 
 /* ==========================================================================
    15. Polish: hero, theory layout, entrance animation, "next action" guide
@@ -756,7 +786,7 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
 .hero__title { margin: 0 0 var(--space-4); max-width: 24em; font-size: 1.625rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
 .hero__facts { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0; padding: 0; list-style: none; font-size: 0.9375rem; color: #e6efff; }
 .hero__facts strong { color: #ffffff; font-size: 1.0625rem; }
-.guidelines > h2 { margin-top: var(--space-2); }
+/* guidelines h2 margin is set in section 7 */
 
 /* Theory: reading column on the left, the handshake animation sticks on the right (desktop). */
 @media (min-width: 961px) {
@@ -781,3 +811,349 @@ main.container > .section:not([hidden]) { animation: section-in 0.35s ease-out b
 .btn--danger.is-next:not(:disabled) { animation-name: none; box-shadow: 0 0 0 3px color-mix(in srgb, #b42318 30%, transparent); }
 
 @media (max-width: 600px) { .hero { padding: var(--space-5) var(--space-4); } .hero__title { font-size: 1.3125rem; } }
+
+/* ==========================================================================
+   16. Visual refresh: network operations console
+   Keeps the existing DOM and behaviour intact while giving every stage of the
+   lab one coherent visual language.
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+  --color-bg: #07111f;
+  --color-surface: #0d1b2d;
+  --color-surface-2: #12253b;
+  --color-text: #e9f2ff;
+  --color-muted: #8fa6c2;
+  --color-border: #27425f;
+  --color-primary: #66e3c4;
+  --color-primary-contrast: #062119;
+  --color-focus: #a4f9e5;
+  --color-legit: #66e3c4;
+  --color-attack: #ff7d69;
+  --color-pending: #f4c866;
+  --color-rejected: #7890ac;
+  --color-completed: #7fb4ff;
+  --color-healthy: #66e3c4;
+  --color-pressure: #f4c866;
+  --color-degraded: #ffad68;
+  --color-unavailable: #ff7d69;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.24), 0 2px 8px rgba(0, 0, 0, 0.22);
+  --space-1: 5px;
+  --space-2: 9px;
+  --space-3: 14px;
+  --space-4: 20px;
+  --space-5: 30px;
+  --space-6: 42px;
+  --header-h: 98px;
+  --page-max: 1560px;
+}
+
+body {
+  background: radial-gradient(circle at 5% 0%, rgba(63, 126, 172, 0.18), transparent 34rem), radial-gradient(circle at 96% 36%, rgba(39, 155, 129, 0.12), transparent 30rem), var(--color-bg);
+  font-size: 0.97rem;
+}
+body::before {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; content: ""; opacity: 0.2;
+  background-image: linear-gradient(rgba(139, 177, 211, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 177, 211, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+#lab-header {
+  min-height: var(--header-h); background: rgba(7, 17, 31, 0.84); border-bottom-color: rgba(127, 180, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(18px);
+}
+#lab-header h1 { font-size: 1.05rem; letter-spacing: 0.02em; text-transform: uppercase; }
+#lab-header h1::before { width: 34px; height: 34px; border: 1px solid rgba(102, 227, 196, 0.65); border-radius: 10px; box-shadow: 0 0 24px rgba(102, 227, 196, 0.18); }
+.section { border-color: rgba(127, 180, 255, 0.18); background: linear-gradient(145deg, rgba(13, 27, 45, 0.96), rgba(10, 23, 39, 0.96)); box-shadow: var(--shadow); }
+.section > h2 { border-bottom-color: rgba(127, 180, 255, 0.16); letter-spacing: -0.02em; }
+.card, .section .card { background: rgba(18, 37, 59, 0.76); border-color: rgba(127, 180, 255, 0.15); }
+.btn { min-height: 42px; border-color: rgba(127, 180, 255, 0.28); border-radius: 10px; transition-property: background-color, border-color, box-shadow, transform; transition-duration: 150ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+.btn:hover:not(:disabled) { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(102, 227, 196, 0.1); }
+.btn:active:not(:disabled) { transform: scale(0.96); }
+.btn--primary { color: var(--color-primary-contrast); background: var(--color-primary); border-color: var(--color-primary); box-shadow: 0 8px 22px rgba(102, 227, 196, 0.16); }
+.btn--primary:hover:not(:disabled) { background: #8af0d8; border-color: #8af0d8; filter: none; }
+.btn--danger { background: var(--color-attack); border-color: var(--color-attack); color: #1d0806; }
+.btn--danger:hover:not(:disabled) { background: #ff9d8f; border-color: #ff9d8f; }
+.hero { margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) var(--space-4); padding: clamp(24px, 3.5vw, 46px) clamp(22px, 5vw, 60px) clamp(20px, 2.5vw, 34px); border-radius: var(--radius) var(--radius) 0 0; background: linear-gradient(110deg, rgba(7, 17, 31, 0.35), rgba(7, 17, 31, 0.86)), radial-gradient(circle at 82% 18%, rgba(102, 227, 196, 0.32), transparent 14rem), linear-gradient(135deg, #17395a 0%, #0d1b2d 72%); }
+.hero__eyebrow { color: var(--color-primary); }
+.hero__title { max-width: 22em; font-size: clamp(1.4rem, 2.4vw, 2rem); letter-spacing: -0.03em; line-height: 1.3; }
+.hero__facts { gap: 10px; }
+.hero__facts li { padding: 9px 13px; background: rgba(7, 17, 31, 0.36); border: 1px solid rgba(164, 249, 229, 0.2); border-radius: 999px; }
+.stepper { background: rgba(7, 17, 31, 0.4); border-color: rgba(127, 180, 255, 0.15); }
+.step { border-color: transparent; border-radius: 10px; }
+.step--current { background: rgba(102, 227, 196, 0.1); border-color: rgba(102, 227, 196, 0.35); }
+.step--completed { color: var(--color-primary); }
+.field, input[type="text"], input[type="number"], select { color: var(--color-text); background: #091727; border-color: rgba(127, 180, 255, 0.3); border-radius: 9px; }
+.disclaimer { background: rgba(244, 200, 102, 0.08); border-color: rgba(244, 200, 102, 0.45); }
+.sim-badge { color: var(--color-primary); background: rgba(102, 227, 196, 0.08); border-color: rgba(102, 227, 196, 0.4); }
+.sim-badge::before { background: var(--color-primary); box-shadow: 0 0 0 4px rgba(102, 227, 196, 0.12); }
+main.container > .section:not([hidden]) { animation: section-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@media (max-width: 600px) {
+  .hero { margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-4); padding: 24px 20px 16px; }
+  .hero__title { font-size: 1.4rem; }
+  .hero__facts { display: grid; }
+  .hero__facts li { border-radius: 10px; }
+}
+
+/* The theory is a short first stage. Its next action starts the compact lab
+   workspace, where the step rail and live dashboard share one viewport. */
+#section-theory > #theory-content { max-width: 78ch; }
+#section-theory > #handshake-demo { min-width: 0; }
+@media (min-width: 1101px) {
+  #section-theory { grid-column: 1 / -1; }
+  #stepper-section { grid-row: 1 / span 3; }
+  #dashboard { grid-row: 1; }
+  #topology { grid-row: 2; }
+  #controls { grid-row: 3; }
+}
+@media (max-width: 1100px) {
+  #section-theory { grid-column: 1 / -1; }
+}
+
+/* Keep the two-column workspace usable in compact laptop and embedded views. */
+@media (min-width: 761px) and (max-width: 960px) {
+  main.container { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  #stepper-section, #topology, #controls, #dashboard { grid-column: 1 / -1; grid-row: auto; position: static; }
+  .theory { display: grid; grid-template-columns: minmax(0, 1fr) 250px; grid-template-rows: auto auto auto auto 1fr; column-gap: var(--space-4); align-items: start; }
+  .theory > h2 { grid-column: 1 / -1; }
+  .theory > #theory-content { grid-column: 1; grid-row: 2 / span 4; margin-bottom: 0; }
+  .theory > #handshake-demo { grid-column: 2; grid-row: 2; margin-bottom: var(--space-2); }
+  .theory > #btn-play-handshake { grid-column: 2; grid-row: 3; justify-self: start; }
+  .theory > #btn-close-theory { grid-column: 2; grid-row: 4; justify-self: start; }
+}
+
+@media (min-width: 961px) {
+  main.container { grid-template-columns: 320px minmax(0, 1fr); column-gap: var(--space-5); row-gap: var(--space-4); }
+  #stepper-section { grid-column: 1; grid-row: 1 / span 3; align-self: start; }
+  #topology, #controls, #dashboard { grid-column: 2; width: 100%; }
+}
+
+/* Keep the step rail beside the three simulation panels; later sections start
+   on a fresh row and can never slide under the rail. */
+main.container > .section { min-width: 0; }
+#stepper-section { position: static; }
+@media (max-width: 1100px) {
+  main.container { grid-template-columns: minmax(0, 1fr); }
+  #stepper-section, #topology, #controls, #dashboard { grid-column: 1 / -1; grid-row: auto; }
+}
+
+@media (max-width: 600px) {
+  .container { padding: var(--space-4) var(--space-3); }
+  #lab-header { align-items: flex-start; }
+  #lab-header h1 { font-size: 0.9rem; }
+  .header-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .header-actions .btn { width: 100%; padding-inline: 10px; }
+  .section { padding: var(--space-4); }
+}
+
+/* The sidebar is a navigation rail, not a second content canvas. */
+#stepper-section { min-width: 0; }
+#stepper-section > h2 { font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; }
+#stepper-section .stepper { padding: 0; margin-bottom: var(--space-3); background: transparent; border: 0; }
+#step-list { gap: 7px; }
+#step-list .step {
+  min-height: 43px;
+  padding: 7px 9px;
+  gap: 9px;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  border-radius: 10px;
+}
+#step-list .step::before { width: 24px; height: 24px; font-size: 0.72rem; border-width: 1.5px; }
+#step-list .step::after { padding-left: 4px; font-size: 0.56rem; letter-spacing: 0.04em; }
+#step-panel { margin-top: var(--space-3); padding: 14px; border-left-width: 3px; }
+#step-panel .btn { width: 100%; }
+
+/* Every later “page” shares the same section rhythm and width. */
+#mitigation, #comparison, #workshop, #quiz, #log { width: 100%; min-width: 0; }
+#mitigation > h2, #comparison > h2, #workshop > h2, #quiz > h2, #log > h2 { min-height: 34px; }
+
+/* Final workspace composition: steps stay beside the live dashboard. */
+#theory-content { max-width: 78ch; }
+#btn-next-workspace { margin: var(--space-3) var(--space-2) 0 0; }
+@media (min-width: 1101px) {
+  #stepper-section { grid-row: 1 / span 3; }
+  #dashboard { grid-row: 1; }
+  #topology { grid-row: 2; }
+  #controls { grid-row: 3; }
+  .theory > #btn-next-workspace { grid-column: 2; grid-row: 4; justify-self: start; }
+  .theory > #btn-close-theory { grid-column: 2; grid-row: 5; justify-self: start; }
+}
+@media (min-width: 601px) and (max-width: 1100px) {
+  .theory > #btn-next-workspace, .theory > #btn-close-theory { justify-self: start; }
+}
+@media (max-width: 600px) {
+  #btn-next-workspace, #btn-close-theory { width: 100%; margin: var(--space-2) 0 0; }
+}
+
+:root {
+  --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12 4 4L19 6' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --icon-check-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12 4 4L19 6' fill='none' stroke='%2366e3c4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --icon-cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 6 12 12M18 6 6 18' fill='none' stroke='%23ff7d69' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  --icon-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m12 3 10 18H2L12 3z' fill='none' stroke='%23ffad68' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M12 9v5M12 18h.01' fill='none' stroke='%23ffad68' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --icon-resize: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v18m-6-6 6 6 6-6M6 9l6-6 6 6' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --icon-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='10' width='16' height='11' rx='2' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M8 10V7a4 4 0 0 1 8 0v3M12 14v3' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --icon-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23f4c866' stroke-width='2'/%3E%3Cpath d='M12 11v5M12 8h.01' fill='none' stroke='%23f4c866' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* The lab panels live in one explicit grid. This prevents auto-placement from
+   leaving a blank first column or moving the step rail below the topology. */
+main.container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+main.container > .section { width: 100%; }
+.lab-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.34fr) minmax(0, 1fr);
+  grid-template-areas:
+    "steps topology"
+    "steps dashboard"
+    "controls controls";
+  gap: 16px;
+  align-items: start;
+  min-width: 0;
+}
+.lab-workspace > .section { width: 100%; min-width: 0; }
+#stepper-section { grid-area: steps; align-self: start; }
+#dashboard { grid-area: dashboard; }
+#topology { grid-area: topology; }
+#controls { grid-area: controls; }
+@media (min-width: 1101px) {
+  #step-list { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 1100px) {
+  .lab-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "steps" "topology" "dashboard" "controls";
+  }
+  #step-list { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+}
+@media (min-width: 901px) {
+  .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1101px) {
+  #step-list .step[data-status="locked"]::after { content: ""; width: 14px; height: 14px; flex: none; margin-left: auto; padding: 0; background: var(--icon-lock) center / contain no-repeat; }
+}
+@media (max-width: 600px) {
+  .lab-workspace { gap: var(--space-3); }
+}
+
+/* Screenshot-led workspace proportions: a readable step rail and a generous
+   diagram column, using the available desktop width without horizontal spill. */
+.container { max-width: 1560px; }
+#stepper-section, #topology, #dashboard, #controls { min-width: 0; }
+#stepper-section { padding: 18px; }
+#topology { padding: 20px; }
+#topology > h2, #stepper-section > h2 { margin-bottom: 12px; }
+#step-list { gap: 8px; }
+#step-list .step { min-height: 46px; }
+@media (min-width: 1101px) {
+  .lab-workspace { grid-template-columns: minmax(330px, 0.36fr) minmax(0, 1fr); }
+}
+
+/* Header navigation: show journey context, keep the next useful action nearby,
+   and tuck destructive/reset actions into a small utility menu. */
+#lab-header {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: clamp(16px, 3vw, 48px);
+  row-gap: 8px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#lab-header h1 { grid-column: 1; grid-row: 1; }
+#lab-header .header-actions { grid-column: 2; grid-row: 1; flex-wrap: nowrap; align-items: center; }
+.lab-progress { grid-column: 1 / -1; grid-row: 2; justify-self: center; width: min(760px, 100%); }
+.lab-progress ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lab-progress li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.lab-progress li::before {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  content: "";
+  background: var(--color-border);
+}
+.lab-progress li:first-child::before { left: 50%; }
+.lab-progress li:last-child::before { right: 50%; }
+.lab-progress li span, .lab-progress li strong { position: relative; z-index: 1; }
+.lab-progress li span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  font: 700 0.625rem var(--font-mono);
+}
+.lab-progress li strong { padding: 2px 5px; background: var(--color-surface); font-weight: 600; }
+.lab-progress li[data-state="complete"] { color: var(--color-primary); }
+.lab-progress li[data-state="complete"] span { color: var(--color-primary-contrast); background: var(--color-primary); border-color: var(--color-primary); }
+.lab-progress li[aria-current="step"] { color: var(--color-text); }
+.lab-progress li[aria-current="step"] span { color: var(--color-primary-contrast); background: var(--color-primary); border-color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent); }
+.lab-progress li[data-state="complete"]::before { background: var(--color-primary); }
+.header-menu { position: relative; }
+.header-menu > summary { list-style: none; }
+.header-menu > summary::-webkit-details-marker { display: none; }
+.header-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 55;
+  display: grid;
+  gap: 6px;
+  width: max-content;
+  min-width: 190px;
+  padding: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+.header-menu__panel .btn { justify-content: flex-start; width: 100%; }
+#btn-term-size::before, #btn-term-close::before { content: ""; display: inline-block; width: 15px; height: 15px; background: center / contain no-repeat; vertical-align: -3px; }
+#btn-term-size::before { background-image: var(--icon-resize); }
+#btn-term-close::before { background-image: var(--icon-cross); }
+#btn-terminal.is-open { background: var(--color-primary); color: var(--color-primary-contrast); border-color: var(--color-primary); }
+@media (max-width: 900px) {
+  #lab-header { grid-template-columns: minmax(0, 1fr) auto; }
+  .lab-progress { width: min(650px, 100%); }
+}
+@media (max-width: 600px) {
+  :root { --header-h: 150px; }
+  #lab-header { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+  #lab-header h1 { grid-column: 1; grid-row: 1; }
+  #lab-header .header-actions { grid-column: 1; grid-row: 2; width: 100%; display: flex; flex-wrap: wrap; }
+  .lab-progress { grid-column: 1; grid-row: 3; width: 100%; }
+  .lab-progress li { gap: 4px; font-size: 0.625rem; }
+  .lab-progress li span { width: 21px; height: 21px; }
+  .lab-progress li strong { padding-inline: 2px; }
+  .header-menu__panel { right: auto; left: 0; }
+}

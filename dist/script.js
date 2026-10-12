@@ -900,7 +900,23 @@ window.Lab = window.Lab || {};
     shield: icon(
       '<path d="M12 3l7.5 2.7v5.6c0 4.4-3.1 8.2-7.5 9.7-4.4-1.5-7.5-5.3-7.5-9.7V5.7L12 3z"/>' +
       '<path d="M8.6 12l2.4 2.4 4.4-4.8"/>'
-    )
+    ),
+
+    check: icon('<path d="m5 12 4 4L19 6"/>'),
+    cross: icon('<path d="m6 6 12 12M18 6 6 18"/>'),
+    lock: icon('<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/>'),
+    warning: icon('<path d="m12 3 10 18H2L12 3z"/><path d="M12 9v5M12 18h.01"/>'),
+    info: icon('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+    arrowUp: icon('<path d="M12 19V5M6 11l6-6 6 6"/>'),
+    arrowDown: icon('<path d="M12 5v14m6-6-6 6-6-6"/>'),
+
+    element: function (name, className) {
+      var wrapper = document.createElement('span');
+      wrapper.innerHTML = Lab.Icons[name] || '';
+      var svg = wrapper.firstElementChild;
+      if (svg && className) svg.setAttribute('class', className);
+      return svg;
+    }
   };
 })(window.Lab);
 
@@ -1184,7 +1200,7 @@ window.Lab = window.Lab || {};
       if (from !== state.serverState) {
         emit('serverStateChange', { from: from, to: state.serverState, t: t });
         log(state.serverState === 'Healthy' ? 'success' : (state.serverState === 'Unavailable' ? 'danger' : 'warn'),
-          'Server state changed: ' + from + ' → ' + state.serverState);
+          'Server state changed: ' + from + ' to ' + state.serverState);
       }
       [50, 90, 100].forEach(function (lvlPct) {
         var reached = lvlPct === 100 ? m.pending >= params.capacity : m.queueUtil >= lvlPct;
@@ -1727,8 +1743,9 @@ window.Lab = window.Lab || {};
     });
     var dot = make('circle', { r: 9, cx: 112, cy: 66, opacity: 0, 'class': 'packet' }, s);
     var tag = make('text', { x: 112, y: 46, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, 'font-family': 'var(--font-mono)', fill: 'var(--color-text)', opacity: 0 }, s);
-    var done = make('text', { x: 210, y: 140, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, 'font-family': 'var(--font-sans)', fill: 'var(--color-healthy)', opacity: 0 }, s);
-    done.textContent = '\u2713 Connection established';
+    var done = make('g', { opacity: 0, role: 'img', 'aria-label': 'Connection established' }, s);
+    if (Lab.Icons && Lab.Icons.check) placeIcon(done, Lab.Icons.check, 142, 126, 22);
+    make('text', { x: 166, y: 143, 'font-size': 15, 'font-weight': 700, 'font-family': 'var(--font-sans)', fill: 'var(--color-healthy)' }, done).textContent = 'Connection established';
     var caption = document.createElement('p');
     caption.setAttribute('role', 'status');
     caption.className = 'handshake-caption';
@@ -2244,7 +2261,10 @@ window.Lab = window.Lab || {};
           var good = row.lowerIsBetter ? !up : up;
           var span = document.createElement('span');
           span.className = 'compare-change compare-change--' + (good ? 'good' : 'bad') + ' compare-change--' + (up ? 'up' : 'down');
-          span.textContent = ' ' + (up ? '▲' : '▼') + ' ' + fmt(Math.abs(diff)) + row.unit;
+          span.textContent = ' ';
+          var trendIcon = Lab.Icons && Lab.Icons.element(up ? 'arrowUp' : 'arrowDown', 'metric-delta__icon');
+          if (trendIcon) span.appendChild(trendIcon);
+          span.appendChild(document.createTextNode(' ' + fmt(Math.abs(diff)) + row.unit));
           var sr = document.createElement('span');
           sr.className = 'visually-hidden';
           sr.textContent = (up ? ' increase' : ' decrease') + ' of ' + fmt(Math.abs(diff)) + ' compared with the attack run, which is ' + (good ? 'better' : 'worse');
@@ -3712,7 +3732,7 @@ window.Lab = window.Lab || {};
       if (li) {
         li.setAttribute('data-done', tasksDone[t.id] ? 'true' : 'false');
         var tick = li.querySelector('.ws-task__tick');
-        if (tick) tick.textContent = tasksDone[t.id] ? '✓' : '';
+        if (tick) { tick.textContent = ''; if (tasksDone[t.id] && Lab.Icons) tick.appendChild(Lab.Icons.element('check')); }
       }
     });
     checkHardenDone();
@@ -3788,7 +3808,15 @@ window.Lab = window.Lab || {};
     box.appendChild(wrap);
     box.appendChild(el('h5', 'ws-h', 'What your configuration did'));
     var ul = el('ul', 'ws-notes');
-    ev.notes.forEach(function (n) { var li = el('li', 'ws-notes__' + n.level); li.appendChild(el('span', 'ws-notes__icon', { good: '✓', warn: '!', bad: '✗', info: 'i' }[n.level])); li.appendChild(document.createTextNode(' ' + n.text)); ul.appendChild(li); });
+    ev.notes.forEach(function (n) {
+      var li = el('li', 'ws-notes__' + n.level);
+      var iconName = { good: 'check', warn: 'warning', bad: 'cross', info: 'info' }[n.level];
+      var iconWrap = el('span', 'ws-notes__icon');
+      if (Lab.Icons && iconName) iconWrap.appendChild(Lab.Icons.element(iconName));
+      li.appendChild(iconWrap);
+      li.appendChild(document.createTextNode(' ' + n.text));
+      ul.appendChild(li);
+    });
     box.appendChild(ul);
     var pend = W.harden.tasks.filter(function (x) { return x.required && !tasksDone[x.id]; });
     if (t.pass && pend.length) box.appendChild(el('p', 'ws-result__pending', 'The test passed, but these required checklist items are still open: ' + pend.map(function (x) { return x.title; }).join('; ') + '.'));
@@ -3813,7 +3841,7 @@ window.Lab = window.Lab || {};
       if (ok) n++;
       tab.setAttribute('data-done', ok ? 'true' : 'false');
       var tick = tab.querySelector('.ws-tab__tick');
-      if (tick) tick.textContent = ok ? '✓' : '';
+      if (tick) { tick.textContent = ''; if (ok && Lab.Icons) tick.appendChild(Lab.Icons.element('check')); }
     });
     var prog = $('workshop-progress');
     if (prog) prog.textContent = n + ' of ' + W.modules.length + ' modules complete';
@@ -4112,7 +4140,8 @@ window.Lab = window.Lab || {};
     steps.forEach(function (st, i) {
       var li = document.createElement('li');
       li.className = guideDone[st.id] ? 'is-done' : (i === cur ? 'is-current' : '');
-      li.textContent = (guideDone[st.id] ? '✓ ' : '') + st.title + (st.required ? '' : ' (bonus)');
+      if (guideDone[st.id] && Lab.Icons && Lab.Icons.element) li.appendChild(Lab.Icons.element('check', 'term-guide__check'));
+      li.appendChild(document.createTextNode(st.title + (st.required ? '' : ' (bonus)')));
       ol.appendChild(li);
     });
     det.appendChild(ol); g.appendChild(det);
@@ -4425,12 +4454,15 @@ window.Lab = window.Lab || {};
     var attackAllowed = started && baselineDone && !running && !runs.mitigated && cur >= 3 && cur <= 6;
     var mitigationAllowed = started && !running && !!runs.attack && (cur === 6 || cur === 7);
 
-    setDisabled('btn-start', !($('ack-checkbox') && $('ack-checkbox').checked));
+    var acknowledged = !!($('ack-checkbox') && $('ack-checkbox').checked);
+    setDisabled('btn-start', !acknowledged);
+    setDisabled('btn-next-workspace', !acknowledged);
     setDisabled('btn-baseline', !(started && !running && cur === 2));
     setDisabled('btn-start-flood', !attackAllowed);
     setDisabled('attack-level', !attackAllowed);
     setDisabled('btn-stop-sim', !running);
     setDisabled('btn-stop', !running);
+    if ($('btn-stop')) $('btn-stop').hidden = !running;
     Object.keys(MIT_INPUTS).forEach(function (id) { setDisabled(id, true); });   // read-only: the terminal controls them
     setDisabled('btn-run-mitigated', !(mitigationAllowed && anyMitigationSelected()));
 
@@ -4449,6 +4481,20 @@ window.Lab = window.Lab || {};
     });
     var rs = $('run-status');
     if (rs) rs.classList.toggle('is-running', running);
+    updateProgressNav(cur);
+  }
+
+  function updateProgressNav(cur) {
+    var nav = $('lab-progress');
+    if (!nav) return;
+    var active = !started ? 0 : (cur <= 5 ? 1 : (cur <= 7 ? 2 : 3));
+    var stages = nav.querySelectorAll('[data-stage]');
+    stages.forEach(function (item, index) {
+      var state = index < active ? 'complete' : (index === active ? 'current' : 'upcoming');
+      item.dataset.state = state;
+      if (state === 'current') item.setAttribute('aria-current', 'step');
+      else item.removeAttribute('aria-current');
+    });
   }
 
   function updateRunStatus(state) {
@@ -4489,10 +4535,11 @@ window.Lab = window.Lab || {};
 
   // ---- journey actions -------------------------------------------------------
   function startLab() {
+    if (!$('ack-checkbox') || !$('ack-checkbox').checked) return;
     started = true;
     show($('screen-guidelines'), false);
     LAB_SECTIONS.forEach(function (id) { show($(id), true); });
-    show($('section-theory'), true);
+    show($('section-theory'), false);
     show($('btn-terminal'), true);
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     setStatus(1, 'in-progress');
@@ -4678,8 +4725,14 @@ window.Lab = window.Lab || {};
 
   function closeTheory() {
     show($('section-theory'), false);
-    if (!started) { scrollToEl($('screen-guidelines')); focusEl($('guidelines-heading')); }
+    if (!started) { show($('screen-guidelines'), true); scrollToEl($('screen-guidelines')); focusEl($('guidelines-heading')); }
     else { scrollToEl($('stepper-section')); focusEl($('step-title')); }
+  }
+
+  function continueToTheory() {
+    if (!$('ack-checkbox') || !$('ack-checkbox').checked) return;
+    show($('screen-guidelines'), false);
+    openTheory();
   }
 
   // ---- reset / restart ------------------------------------------------------------
@@ -4756,7 +4809,8 @@ window.Lab = window.Lab || {};
   function wire() {
     var ack = $('ack-checkbox');
     ack.addEventListener('change', updateControls);
-    $('btn-start').addEventListener('click', startLab);
+    $('btn-start').addEventListener('click', continueToTheory);
+    $('btn-next-workspace').addEventListener('click', startLab);
     $('btn-view-theory').addEventListener('click', openTheory);
     $('btn-theory').addEventListener('click', openTheory);
     $('btn-close-theory').addEventListener('click', closeTheory);
