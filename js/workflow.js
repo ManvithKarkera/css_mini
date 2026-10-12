@@ -228,12 +228,15 @@ window.Lab = window.Lab || {};
     var attackAllowed = started && baselineDone && !running && !runs.mitigated && cur >= 3 && cur <= 6;
     var mitigationAllowed = started && !running && !!runs.attack && (cur === 6 || cur === 7);
 
-    setDisabled('btn-start', !($('ack-checkbox') && $('ack-checkbox').checked));
+    var acknowledged = !!($('ack-checkbox') && $('ack-checkbox').checked);
+    setDisabled('btn-start', !acknowledged);
+    setDisabled('btn-next-workspace', !acknowledged);
     setDisabled('btn-baseline', !(started && !running && cur === 2));
     setDisabled('btn-start-flood', !attackAllowed);
     setDisabled('attack-level', !attackAllowed);
     setDisabled('btn-stop-sim', !running);
     setDisabled('btn-stop', !running);
+    if ($('btn-stop')) $('btn-stop').hidden = !running;
     Object.keys(MIT_INPUTS).forEach(function (id) { setDisabled(id, true); });   // read-only: the terminal controls them
     setDisabled('btn-run-mitigated', !(mitigationAllowed && anyMitigationSelected()));
 
@@ -252,6 +255,20 @@ window.Lab = window.Lab || {};
     });
     var rs = $('run-status');
     if (rs) rs.classList.toggle('is-running', running);
+    updateProgressNav(cur);
+  }
+
+  function updateProgressNav(cur) {
+    var nav = $('lab-progress');
+    if (!nav) return;
+    var active = !started ? 0 : (cur <= 5 ? 1 : (cur <= 7 ? 2 : 3));
+    var stages = nav.querySelectorAll('[data-stage]');
+    stages.forEach(function (item, index) {
+      var state = index < active ? 'complete' : (index === active ? 'current' : 'upcoming');
+      item.dataset.state = state;
+      if (state === 'current') item.setAttribute('aria-current', 'step');
+      else item.removeAttribute('aria-current');
+    });
   }
 
   function updateRunStatus(state) {
@@ -292,10 +309,11 @@ window.Lab = window.Lab || {};
 
   // ---- journey actions -------------------------------------------------------
   function startLab() {
+    if (!$('ack-checkbox') || !$('ack-checkbox').checked) return;
     started = true;
     show($('screen-guidelines'), false);
     LAB_SECTIONS.forEach(function (id) { show($(id), true); });
-    show($('section-theory'), true);
+    show($('section-theory'), false);
     show($('btn-terminal'), true);
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     setStatus(1, 'in-progress');
@@ -481,8 +499,14 @@ window.Lab = window.Lab || {};
 
   function closeTheory() {
     show($('section-theory'), false);
-    if (!started) { scrollToEl($('screen-guidelines')); focusEl($('guidelines-heading')); }
+    if (!started) { show($('screen-guidelines'), true); scrollToEl($('screen-guidelines')); focusEl($('guidelines-heading')); }
     else { scrollToEl($('stepper-section')); focusEl($('step-title')); }
+  }
+
+  function continueToTheory() {
+    if (!$('ack-checkbox') || !$('ack-checkbox').checked) return;
+    show($('screen-guidelines'), false);
+    openTheory();
   }
 
   // ---- reset / restart ------------------------------------------------------------
@@ -559,7 +583,8 @@ window.Lab = window.Lab || {};
   function wire() {
     var ack = $('ack-checkbox');
     ack.addEventListener('change', updateControls);
-    $('btn-start').addEventListener('click', startLab);
+    $('btn-start').addEventListener('click', continueToTheory);
+    $('btn-next-workspace').addEventListener('click', startLab);
     $('btn-view-theory').addEventListener('click', openTheory);
     $('btn-theory').addEventListener('click', openTheory);
     $('btn-close-theory').addEventListener('click', closeTheory);

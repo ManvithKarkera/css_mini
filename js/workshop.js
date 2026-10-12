@@ -1152,7 +1152,7 @@ window.Lab = window.Lab || {};
       if (li) {
         li.setAttribute('data-done', tasksDone[t.id] ? 'true' : 'false');
         var tick = li.querySelector('.ws-task__tick');
-        if (tick) tick.textContent = tasksDone[t.id] ? '✓' : '';
+        if (tick) { tick.textContent = ''; if (tasksDone[t.id] && Lab.Icons) tick.appendChild(Lab.Icons.element('check')); }
       }
     });
     checkHardenDone();
@@ -1228,7 +1228,15 @@ window.Lab = window.Lab || {};
     box.appendChild(wrap);
     box.appendChild(el('h5', 'ws-h', 'What your configuration did'));
     var ul = el('ul', 'ws-notes');
-    ev.notes.forEach(function (n) { var li = el('li', 'ws-notes__' + n.level); li.appendChild(el('span', 'ws-notes__icon', { good: '✓', warn: '!', bad: '✗', info: 'i' }[n.level])); li.appendChild(document.createTextNode(' ' + n.text)); ul.appendChild(li); });
+    ev.notes.forEach(function (n) {
+      var li = el('li', 'ws-notes__' + n.level);
+      var iconName = { good: 'check', warn: 'warning', bad: 'cross', info: 'info' }[n.level];
+      var iconWrap = el('span', 'ws-notes__icon');
+      if (Lab.Icons && iconName) iconWrap.appendChild(Lab.Icons.element(iconName));
+      li.appendChild(iconWrap);
+      li.appendChild(document.createTextNode(' ' + n.text));
+      ul.appendChild(li);
+    });
     box.appendChild(ul);
     var pend = W.harden.tasks.filter(function (x) { return x.required && !tasksDone[x.id]; });
     if (t.pass && pend.length) box.appendChild(el('p', 'ws-result__pending', 'The test passed, but these required checklist items are still open: ' + pend.map(function (x) { return x.title; }).join('; ') + '.'));
@@ -1253,7 +1261,7 @@ window.Lab = window.Lab || {};
       if (ok) n++;
       tab.setAttribute('data-done', ok ? 'true' : 'false');
       var tick = tab.querySelector('.ws-tab__tick');
-      if (tick) tick.textContent = ok ? '✓' : '';
+      if (tick) { tick.textContent = ''; if (ok && Lab.Icons) tick.appendChild(Lab.Icons.element('check')); }
     });
     var prog = $('workshop-progress');
     if (prog) prog.textContent = n + ' of ' + W.modules.length + ' modules complete';

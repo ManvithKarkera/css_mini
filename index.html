@@ -14,12 +14,25 @@
 <!-- OWNER: Manvith (skeleton), Yash (styling) -->
 <header id="lab-header" class="container">
   <h1>SYN Flood Virtual Lab</h1>
+  <nav id="lab-progress" class="lab-progress" aria-label="Lab progress">
+    <ol>
+      <li data-stage="theory" aria-current="step"><span>01</span><strong>Theory</strong></li>
+      <li data-stage="experiment"><span>02</span><strong>Experiment</strong></li>
+      <li data-stage="defences"><span>03</span><strong>Defences</strong></li>
+      <li data-stage="review"><span>04</span><strong>Review</strong></li>
+    </ol>
+  </nav>
   <div class="header-actions">
     <button type="button" id="btn-theory" class="btn btn--ghost">Theory</button>
     <button type="button" id="btn-terminal" class="btn btn--ghost" hidden aria-expanded="false" aria-controls="terminal-drawer">Terminal</button>
-    <button type="button" id="btn-stop" class="btn btn--danger">Stop</button>
-    <button type="button" id="btn-reset" class="btn btn--ghost">Reset</button>
-    <button type="button" id="btn-restart" class="btn btn--ghost">Restart Lab</button>
+    <button type="button" id="btn-stop" class="btn btn--danger" hidden>Stop</button>
+    <details class="header-menu">
+      <summary class="btn btn--ghost">Lab menu</summary>
+      <div class="header-menu__panel">
+        <button type="button" id="btn-reset" class="btn btn--ghost">Reset current run</button>
+        <button type="button" id="btn-restart" class="btn btn--ghost">Restart lab</button>
+      </div>
+    </details>
   </div>
 </header>
 
@@ -31,7 +44,7 @@
       <p class="hero__eyebrow">Interactive networking lab</p>
       <p class="hero__title">See how a SYN flood takes a server offline, and how defences bring it back.</p>
       <ul class="hero__facts">
-        <li><strong>8</strong> guided steps</li>
+        <li><strong>9</strong> guided steps</li>
         <li><strong>~15 min</strong> to complete</li>
         <li><strong>100%</strong> simulated, nothing leaves your browser</li>
       </ul>
@@ -45,7 +58,7 @@
       I have read and understood the guidelines
     </label>
     <div class="guidelines-actions">
-      <button type="button" id="btn-start" class="btn btn--primary" disabled>Start Experiment</button>
+      <button type="button" id="btn-start" class="btn btn--primary" disabled>Continue to Theory</button>
       <button type="button" id="btn-view-theory" class="btn btn--ghost">View Theory</button>
     </div>
   </section>
@@ -56,8 +69,10 @@
     <div id="theory-content"></div>
     <div id="handshake-demo" aria-label="TCP three-way handshake demonstration"></div>
     <button type="button" id="btn-play-handshake" class="btn btn--ghost">Replay handshake</button>
+    <button type="button" id="btn-next-workspace" class="btn btn--primary" disabled>Next: Experiment Workspace</button>
   </section>
 
+  <div id="lab-workspace" class="lab-workspace">
   <!-- OWNER: Manvith (workflow), Yash (styling) -->
   <section id="stepper-section" hidden class="section" aria-labelledby="stepper-heading">
     <h2 id="stepper-heading">Experiment Steps</h2>
@@ -156,6 +171,7 @@
       <canvas id="chart-history" width="800" height="240" role="img" aria-label="History chart of availability and queue utilisation (simulated data)"></canvas>
     </div>
   </section>
+  </div>
 
   <!-- OWNER: Manvith (wiring), Meet (text), Sanika (styling) -->
   <section id="mitigation" hidden class="section" aria-labelledby="mitigation-heading">
@@ -219,9 +235,9 @@
   <div class="term-drawer__bar">
     <span class="term-drawer__title"><span class="term-drawer__dot" aria-hidden="true"></span>root@web01 — simulated terminal</span>
     <span class="term-drawer__actions">
-      <button type="button" id="btn-term-size" class="term-drawer__btn" aria-label="Make the terminal taller">&#x2195; Resize</button>
+      <button type="button" id="btn-term-size" class="term-drawer__btn" aria-label="Make the terminal taller">Resize</button>
       <button type="button" id="btn-term-clear" class="term-drawer__btn" aria-label="Clear the terminal">Clear</button>
-      <button type="button" id="btn-term-close" class="term-drawer__btn" aria-label="Close the terminal">Close &#x2715;</button>
+      <button type="button" id="btn-term-close" class="term-drawer__btn" aria-label="Close the terminal">Close</button>
     </span>
   </div>
   <div class="term-drawer__body">
