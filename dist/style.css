@@ -1,35 +1,1071 @@
 /* ===== css/base.css ===== */
 /* ==========================================================================
    base.css — OWNER: Yash Masaye
-   Purpose: :root tokens, reset, layout, buttons, forms, stepper, theory,
-   modals, toasts. Classes owned here are listed in CONTRACT.md §5.6.
-   STUB: replace with the real stylesheet (YM2). Tokens must be defined first
-   because lab.css uses them.
+   Purpose: design tokens, reset, page layout, header, buttons, forms, stepper,
+   guidelines, theory, modals, toasts. Classes owned here are listed in
+   CONTRACT.md §5.6. lab.css (Sanika) only uses the tokens defined here.
+
+   Colour meaning (used everywhere):
+     legit = teal/green · attack = red-orange · pending = amber
+     rejected = grey · completed = blue
+     Healthy = green · Under Pressure = amber · Degraded = orange · Unavailable = red
+   Every text/background pair meets WCAG AA (4.5:1) in both themes, and colour
+   is never the only signal (labels, icons or shapes always accompany it).
+   No external fonts or URLs: system font stacks only.
    ========================================================================== */
+
+/* ---- 1. Tokens (light theme) ------------------------------------------- */
 :root {
-  --color-bg: #f7f8fa; --color-surface: #ffffff; --color-surface-2: #eef1f5;
-  --color-text: #1b2430; --color-muted: #5b6675; --color-border: #d5dbe3;
-  --color-primary: #1f5fbf; --color-primary-contrast: #ffffff; --color-focus: #0b57d0;
-  --color-legit: #0f8a6d; --color-attack: #c8421a; --color-pending: #a86500;
-  --color-rejected: #66707d; --color-completed: #1f5fbf;
-  --color-healthy: #12804f; --color-pressure: #9a6b00;
-  --color-degraded: #b5530a; --color-unavailable: #b3261e;
-  --font-sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  --radius: 8px; --radius-sm: 4px; --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  color-scheme: light;
+
+  --color-bg: #f3f5f9;
+  --color-surface: #ffffff;
+  --color-surface-2: #eaeef5;
+  --color-text: #16202e;
+  --color-muted: #566275;
+  --color-border: #d3dae6;
+
+  --color-primary: #1d4fb8;
+  --color-primary-contrast: #ffffff;
+  --color-focus: #1a6ff0;
+
+  --color-legit: #0b7a5f;
+  --color-attack: #c2410c;
+  --color-pending: #96590a;
+  --color-rejected: #5f6b7a;
+  --color-completed: #1d4fb8;
+
+  --color-healthy: #0f7a46;
+  --color-pressure: #8f5a00;
+  --color-degraded: #b34700;
+  --color-unavailable: #b42318;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(16, 28, 46, 0.06), 0 4px 14px rgba(16, 28, 46, 0.06);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* internal helpers (not part of the contract) */
+  --header-h: 68px;
+  --page-max: 1200px;
 }
+
+/* ---- 1b. Tokens (dark theme): same names, different values -------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --color-bg: #0e1520;
+    --color-surface: #162131;
+    --color-surface-2: #1e2c40;
+    --color-text: #e8edf5;
+    --color-muted: #a3b0c3;
+    --color-border: #2d3d55;
+
+    --color-primary: #7aa9ff;
+    --color-primary-contrast: #08111f;
+    --color-focus: #9cc0ff;
+
+    --color-legit: #3ddbb0;
+    --color-attack: #ff8d62;
+    --color-pending: #f2bb4f;
+    --color-rejected: #a3b0c3;
+    --color-completed: #8ab6ff;
+
+    --color-healthy: #4fd68f;
+    --color-pressure: #f2c14b;
+    --color-degraded: #ff9a52;
+    --color-unavailable: #ff7b72;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ---- 2. Reset and base -------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; font-family: var(--font-sans); background: var(--color-bg); color: var(--color-text); }
-.container { max-width: 1200px; margin: 0 auto; padding: var(--space-4); }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + var(--space-4)); }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] { display: none !important; }
+
+h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 var(--space-3); letter-spacing: -0.01em; }
+h1 { font-size: 1.375rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.0625rem; }
+p { margin: 0 0 var(--space-3); }
+ul, ol { margin: 0 0 var(--space-3); padding-left: 1.4em; }
+a { color: var(--color-primary); text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+code, kbd, samp { font-family: var(--font-mono); font-size: 0.9em; background: var(--color-surface-2); padding: 0.1em 0.4em; border-radius: 4px; }
+svg { max-width: 100%; }
+dl { margin: 0; }
+dd { margin: 0; }
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* headings receive programmatic focus on step changes: no ring needed for those */
+[tabindex="-1"]:focus { outline: none; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- 3. Layout ---------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+/* Header: a full-width sticky bar whose content lines up with the page container. */
+#lab-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  max-width: none;
+  min-height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) max(var(--space-4), calc((100% - var(--page-max)) / 2 + var(--space-4)));
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+}
+#lab-header h1 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 1.25rem;
+}
+/* small logo mark: a "packet" tile */
+#lab-header h1::before {
+  content: "";
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 30% 30%, var(--color-primary-contrast) 0 14%, transparent 15%),
+    radial-gradient(circle at 72% 68%, var(--color-attack) 0 18%, transparent 19%),
+    var(--color-primary);
+}
+.header-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* Main lab area: stepper on the left, simulation on the right (desktop). */
+main.container {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+main.container > .section { margin: 0; min-width: 0; }
+#screen-guidelines, #section-theory,
+#mitigation, #comparison, #quiz, #log { grid-column: 1 / -1; }
+#stepper-section {
+  grid-column: 1;
+  grid-row: span 3;
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-4));
+}
+#topology, #controls, #dashboard { grid-column: 2; }
+
+@media (max-width: 960px) {
+  main.container { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  #stepper-section { grid-column: 1 / -1; grid-row: auto; position: static; }
+  #topology, #controls, #dashboard { grid-column: 1 / -1; }
+}
+
+/* ---- 4. Sections and cards ---------------------------------------------- */
+.section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-5);
+}
+.section > h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+}
+.section .card { background: var(--color-surface-2); border-color: transparent; }
+
+/* "Simulated data" badge (shown next to every set of numbers) */
+.sim-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-muted);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.sim-badge::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--color-pending);
+}
+
+/* ---- 5. Buttons --------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+}
+.btn:hover:not(:disabled) { background: var(--color-surface-2); border-color: var(--color-muted); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn--primary {
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  filter: brightness(1.1);
+}
+
+/* Danger buttons are solid red with white text in both themes (contrast >= 4.5:1). */
+.btn--danger {
+  color: #ffffff;
+  background: #b42318;
+  border-color: #b42318;
+}
+.btn--danger:hover:not(:disabled) { background: #9a1b12; border-color: #9a1b12; }
+@media (prefers-color-scheme: dark) {
+  .btn--danger { background: #d92d20; border-color: #d92d20; }
+  .btn--danger:hover:not(:disabled) { background: #b42318; border-color: #b42318; }
+}
+
+.btn--ghost { background: transparent; }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 1;
+  color: var(--color-muted);
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+  border-style: dashed;
+  filter: none;
+}
+
+/* The header Stop button is the most prominent control. */
+#btn-stop { min-width: 88px; box-shadow: 0 0 0 3px color-mix(in srgb, #b42318 22%, transparent); }
+#btn-stop:disabled { box-shadow: none; }
+
+/* ---- 6. Forms ----------------------------------------------------------- */
+label { font-weight: 500; }
+
+.field,
+select,
+input[type="text"],
+input[type="number"] {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+select.field, select { padding-right: var(--space-2); cursor: pointer; }
+.field:hover:not(:disabled) { border-color: var(--color-muted); }
+.field:disabled { color: var(--color-muted); background: var(--color-surface-2); cursor: not-allowed; }
+
+/* Checkbox with a generous hit area; the label is the whole row. */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.checkbox:hover { border-color: var(--color-muted); }
+.checkbox input[type="checkbox"] {
+  flex: none;
+  width: 22px; height: 22px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* Switch: any checkbox with .toggle, plus the mitigation checkboxes. */
+.toggle,
+.mitigation-item input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 48px; height: 28px;
+  margin: 0;
+  border: 2px solid var(--color-muted);
+  border-radius: 999px;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.toggle::before,
+.mitigation-item input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--color-muted);
+  transition: transform 0.2s, background-color 0.2s;
+}
+.toggle:checked,
+.mitigation-item input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.toggle:checked::before,
+.mitigation-item input[type="checkbox"]:checked::before {
+  background: var(--color-primary-contrast);
+  transform: translateX(20px);
+}
+.toggle:disabled,
+.mitigation-item input[type="checkbox"]:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ---- 7. Before You Begin / guidelines ---------------------------------- */
+.guidelines { padding: var(--space-6); }
+.guidelines > h2 { font-size: 1.5rem; }
+#lab-objective {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  font-size: 1.0625rem;
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+#lab-objective:empty { display: none; }
+.guidelines ol {
+  list-style: none;
+  counter-reset: guideline;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.guidelines ol > li {
+  counter-increment: guideline;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.guidelines ol > li::before {
+  content: counter(guideline);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  margin-top: 1px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+.guidelines-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-4); }
+.guidelines .checkbox { margin-top: var(--space-2); }
+
+/* ---- 8. Theory ----------------------------------------------------------- */
+.theory h3 { margin-top: var(--space-5); font-size: 1.0625rem; color: var(--color-primary); }
+.theory h3:first-child { margin-top: 0; }
+.theory p { max-width: 75ch; }
+#theory-content { margin-bottom: var(--space-4); }
+#handshake-demo {
+  margin-bottom: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}
+.handshake-caption {
+  min-height: 3.2em;
+  margin: var(--space-2) 0 0;
+  font-weight: 500;
+}
+
+/* ---- 9. Stepper and step panel ------------------------------------------ */
+.stepper { margin-bottom: var(--space-4); }
+.stepper ol, #step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+/* step number badge */
+.step::before {
+  content: attr(data-step);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: transparent;
+}
+/* status word: colour is never the only signal */
+.step::after {
+  content: "";
+  margin-left: auto;
+  padding-left: var(--space-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* locked: muted, dashed, with a lock */
+.step[data-status="locked"], .step--locked {
+  color: var(--color-muted);
+  background: var(--color-surface-2);
+  border-style: dashed;
+}
+.step[data-status="locked"]::before, .step--locked::before { border-style: dashed; }
+.step[data-status="locked"]::after, .step--locked::after { content: "\1F512  Locked"; }
+
+/* ready: outlined in primary */
+.step[data-status="ready"], .step--ready {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+.step[data-status="ready"]::before, .step--ready::before { color: var(--color-primary); }
+.step[data-status="ready"]::after, .step--ready::after { content: "Ready"; color: var(--color-primary); }
+
+/* in progress: solid primary with a gentle pulse */
+.step[data-status="in-progress"], .step--in-progress {
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  animation: step-pulse 2s ease-in-out infinite;
+}
+.step[data-status="in-progress"]::before, .step--in-progress::before {
+  color: var(--color-primary);
+  background: var(--color-primary-contrast);
+  border-color: var(--color-primary-contrast);
+}
+.step[data-status="in-progress"]::after, .step--in-progress::after { content: "In progress"; }
+
+/* completed: green with a check */
+.step[data-status="completed"], .step--completed {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-healthy) 12%, var(--color-surface));
+  border-color: var(--color-healthy);
+}
+.step[data-status="completed"]::before, .step--completed::before {
+  content: "\2713";
+  color: #ffffff;
+  background: var(--color-healthy);
+  border-color: var(--color-healthy);
+}
+.step[data-status="completed"]::after, .step--completed::after { content: "Done"; color: var(--color-healthy); }
+
+@keyframes step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 45%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 0%, transparent); }
+}
+
+#step-panel { padding: var(--space-4); border-left: 4px solid var(--color-primary); }
+#step-title { font-size: 1.0625rem; margin-bottom: var(--space-2); }
+#step-title:empty { display: none; }
+#step-instructions { color: var(--color-text); }
+#step-instructions:empty { display: none; }
+#step-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+#step-actions:empty { display: none; }
+
+/* ---- 10. Modals (<dialog>) ----------------------------------------------- */
+.modal {
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 560px;
+  max-height: calc(100vh - 2 * var(--space-4));
+  max-height: calc(100dvh - 2 * var(--space-4));
+  overflow-y: auto;
+  margin: auto;
+  padding: var(--space-6);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 64px rgba(8, 17, 31, 0.35);
+}
+.modal::backdrop { background: rgba(8, 17, 31, 0.6); backdrop-filter: blur(2px); }
+.modal[open] { animation: modal-in 0.2s ease-out; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+.modal h2 { font-size: 1.375rem; }
+#modal-complete h2 { display: flex; align-items: center; gap: var(--space-3); }
+#modal-complete h2::before {
+  content: "\2713";
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  font-size: 1.25rem;
+  color: #ffffff;
+  background: var(--color-healthy);
+  border-radius: 50%;
+}
+.modal dl { display: grid; margin: var(--space-4) 0; }
+.modal dl > div, .modal dt { color: var(--color-muted); font-size: 0.875rem; }
+.modal dl { grid-template-columns: 1fr auto; align-items: stretch; gap: 0; }
+.modal dt { padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
+.modal dd {
+  padding: var(--space-2) 0;
+  font-family: var(--font-mono);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+.modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-5); }
+#confirm-message { font-size: 1.0625rem; margin: 0; }
+
+/* ---- 11. Toasts ---------------------------------------------------------- */
+.toast {
+  display: block;
+  max-width: 420px;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 6px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 28px rgba(8, 17, 31, 0.25);
+  animation: toast-in 0.25s ease-out;
+}
+.toast--success { border-left-color: var(--color-healthy); }
+.toast--warn { border-left-color: var(--color-degraded); }
+.toast--danger { border-left-color: var(--color-unavailable); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+#notifications:empty { display: none; }
+/* #notifications is an aria-live region; its text is also shown as a toast, so keep it screen-reader-only. */
+#notifications {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- 12. Responsive ------------------------------------------------------ */
+@media (max-width: 600px) {
+  .container { padding: var(--space-4) var(--space-3); }
+  #lab-header { padding: var(--space-2) var(--space-3); }
+  #lab-header h1 { font-size: 1.0625rem; }
+  .header-actions { width: 100%; }
+  .header-actions .btn { flex: 1 1 0; padding: 0 var(--space-2); font-size: 0.875rem; }
+  .section { padding: var(--space-4); }
+  .guidelines { padding: var(--space-4); }
+  .modal { padding: var(--space-4); }
+  .modal-actions .btn, .guidelines-actions .btn { flex: 1 1 100%; }
+  .toast { max-width: none; }
+}
+@media (max-width: 360px) {
+  .step::after { font-size: 0.625rem; }
+}
+
+/* ---- 13. Reduced motion: disable all transitions and animations ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* ===== css/lab.css ===== */
 /* ==========================================================================
    lab.css — OWNER: Sanika Lobo
-   Purpose: topology, nodes, packets, queue grid, metric cards, server badges,
-   chart, log, comparison table, quiz. Classes owned here are listed in
-   CONTRACT.md §5.6. Use only var(--...) tokens from base.css.
-   STUB: replace with the real stylesheet (SL2).
+   Purpose: simulation components: topology, nodes, packets, queue grid,
+   controls, dashboard cards, server badges, chart, log, comparison table,
+   quiz, component info and mitigation items. Classes owned here are listed in
+   CONTRACT.md §5.6. Uses ONLY the var(--...) tokens from base.css, so light
+   and dark themes both work. Colour is never the only signal: variants also
+   differ by shape, stroke, text or icon.
    ========================================================================== */
+
+/* ---- 1. Topology ---------------------------------------------------------- */
+.topology { overflow: hidden; }
+#topology-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 460px;
+  background:
+    radial-gradient(circle at 1px 1px, var(--color-border) 1px, transparent 1.5px) 0 0 / 20px 20px,
+    var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}
+
+/* On phones the diagram keeps a readable minimum width and scrolls inside its own box (never the page). */
+.topology-scroll { overflow-x: auto; border-radius: var(--radius-sm); -webkit-overflow-scrolling: touch; }
+@media (max-width: 760px) { #topology-svg { min-width: 640px; } }
+
+.link { stroke: var(--color-border); stroke-width: 3; stroke-linecap: round; }
+
+.node { cursor: pointer; outline: none; }
+.node .node__box { fill: var(--color-surface); transition: stroke 0.15s, stroke-width 0.15s, filter 0.15s; }
+.node:hover .node__box { stroke: var(--color-primary); }
+.node:focus-visible .node__box { stroke: var(--color-focus); stroke-width: 4; filter: drop-shadow(0 0 4px var(--color-focus)); }
+.node.is-selected .node__box { stroke: var(--color-focus); stroke-width: 4; fill: var(--color-surface-2); }
+.node text { pointer-events: none; user-select: none; }
+.node__icon { pointer-events: none; }
+
+/* coloured top rail per node role (a shape cue as well as a colour cue: the label always shows the role) */
+.node--client .node__box    { stroke: var(--color-legit); }
+.node--generator .node__box { stroke: var(--color-attack); stroke-dasharray: 7 4; }
+.node--server .node__box    { stroke: var(--color-completed); }
+.node--queue .node__box     { stroke: var(--color-pending); }
+.node--status .node__box    { stroke-width: 4; }
+.node--status.server-badge--healthy .node__box     { stroke: var(--color-healthy); }
+.node--status.server-badge--pressure .node__box    { stroke: var(--color-pressure); }
+.node--status.server-badge--degraded .node__box    { stroke: var(--color-degraded); stroke-dasharray: 10 4; }
+.node--status.server-badge--unavailable .node__box { stroke: var(--color-unavailable); stroke-dasharray: 4 4; }
+.node--client:hover .node__box, .node--generator:hover .node__box,
+.node--server:hover .node__box, .node--queue:hover .node__box { stroke: var(--color-primary); }
+
+/* ---- 2. Packets ----------------------------------------------------------- */
+.packet { stroke: var(--color-surface); stroke-width: 2; r: 6px; fill: var(--color-legit); pointer-events: none; }
+.packet--legit    { fill: var(--color-legit); }                                                    /* solid circle */
+.packet--attack   { fill: var(--color-attack); r: 7px; stroke: var(--color-text); }                /* larger, dark ring */
+.packet--synack   { fill: var(--color-pending); }                                                  /* amber */
+.packet--ack      { fill: var(--color-completed); }                                                /* blue */
+.packet--rejected { fill: var(--color-rejected); stroke: var(--color-text); stroke-dasharray: 3 2; }
+.packet--filtered { fill: var(--color-rejected); stroke: var(--color-attack); stroke-dasharray: 2 2; }
+.packet--cookie   { fill: var(--color-completed); stroke: var(--color-text); stroke-width: 3; stroke-dasharray: 1 3; }
+
+/* ---- 3. Queue grid -------------------------------------------------------- */
+.queue-slot {
+  stroke-width: 1;
+  transition: fill 0.25s ease, stroke 0.25s ease;
+}
+.queue-slot--free   { fill: var(--color-surface-2); stroke: var(--color-border); }
+.queue-slot--legit  { fill: var(--color-legit); stroke: var(--color-legit); rx: 5px; }              /* round */
+.queue-slot--attack { fill: var(--color-attack); stroke: var(--color-text); rx: 0; }                /* square, outlined */
+
+/* HTML queue grid (if a page renders the slots as elements instead of SVG): 10x10, wraps on mobile */
+div.queue-grid, ul.queue-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+  max-width: 360px;
+}
+div.queue-grid .queue-slot { aspect-ratio: 1; border-radius: 3px; border: 1px solid var(--color-border); }
+div.queue-grid .queue-slot--free   { background: var(--color-surface-2); }
+div.queue-grid .queue-slot--legit  { background: var(--color-legit); border-color: var(--color-legit); border-radius: 50%; }
+div.queue-grid .queue-slot--attack { background: var(--color-attack); border-color: var(--color-text); border-radius: 0; }
+
+/* ---- 4. Component info ---------------------------------------------------- */
+.component-info {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.component-info:empty { display: none; }
+.component-info strong { display: block; margin-bottom: var(--space-1); }
+.component-info p { margin: 0; color: var(--color-text); }
+
+/* ---- 5. Simulation controls ----------------------------------------------- */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.controls-row label { color: var(--color-muted); font-size: 0.9375rem; margin-left: var(--space-2); }
+
+/* ---- 6. Dashboard: server badge, metric cards, progress, chart ------------- */
+#server-state { margin-bottom: var(--space-4); }
+
+.server-badge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.server-badge::before {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  line-height: 1;
+  color: #ffffff;
+  background: var(--color-muted);
+  border-radius: 50%;
+}
+.server-state__name { font-weight: 700; font-size: 1.0625rem; }
+.server-state__desc { flex: 1 1 220px; color: var(--color-muted); font-size: 0.9375rem; }
+
+/* each state has its own icon glyph and border style as well as its colour */
+.server-badge.server-badge--healthy     { background: color-mix(in srgb, var(--color-healthy) 12%, var(--color-surface));     border-color: var(--color-healthy); }
+.server-badge.server-badge--pressure    { background: color-mix(in srgb, var(--color-pressure) 14%, var(--color-surface));    border-color: var(--color-pressure); }
+.server-badge.server-badge--degraded    { background: color-mix(in srgb, var(--color-degraded) 14%, var(--color-surface));    border-color: var(--color-degraded); border-style: dashed; }
+.server-badge.server-badge--unavailable { background: color-mix(in srgb, var(--color-unavailable) 14%, var(--color-surface)); border-color: var(--color-unavailable); border-style: dotted; }
+.server-badge.server-badge--healthy::before     { content: "\2713"; background: var(--color-healthy); }
+.server-badge.server-badge--pressure::before    { content: "!";     background: var(--color-pressure); }
+.server-badge.server-badge--degraded::before    { content: "\25B2"; background: var(--color-degraded); font-size: 0.75rem; }
+.server-badge.server-badge--unavailable::before { content: "\2715"; background: var(--color-unavailable); }
+/* white glyphs on the amber/green tokens must keep 3:1 in dark mode, where those tokens are light */
+@media (prefers-color-scheme: dark) {
+  .server-badge.server-badge--healthy::before,
+  .server-badge.server-badge--pressure::before,
+  .server-badge.server-badge--degraded::before,
+  .server-badge.server-badge--unavailable::before { color: #08111f; }
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 1180px) { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 960px)  { .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 760px)  { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px)  { .metrics-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border-top: 3px solid var(--color-border);
+}
+.section .metric { background: var(--color-surface-2); }
+.metric__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.metric__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* a coloured top edge per metric, matching the colour meaning used everywhere */
+.metric[data-metric="syn-incoming"]  { border-top-color: var(--color-attack); }
+.metric[data-metric="pending"]       { border-top-color: var(--color-pending); }
+.metric[data-metric="completed"]     { border-top-color: var(--color-completed); }
+.metric[data-metric="rejected"]      { border-top-color: var(--color-rejected); }
+.metric[data-metric="queue-util"]    { border-top-color: var(--color-pending); }
+.metric[data-metric="cpu"]           { border-top-color: var(--color-degraded); }
+.metric[data-metric="response-time"] { border-top-color: var(--color-muted); }
+.metric[data-metric="availability"]  { border-top-color: var(--color-healthy); }
+
+.progress {
+  height: 8px;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  background: var(--color-border);
+  border-radius: 999px;
+}
+.progress__bar {
+  width: 0;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.metric[data-metric="queue-util"] .progress__bar   { background: var(--color-pending); }
+.metric[data-metric="cpu"] .progress__bar          { background: var(--color-degraded); }
+.metric[data-metric="availability"] .progress__bar { background: var(--color-healthy); }
+
+.chart {
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.chart canvas { display: block; width: 100%; }
+
+/* ---- 7. Mitigation items ---------------------------------------------------- */
+#mitigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-4); }
+#mitigation > h2, #mitigation > .btn { grid-column: 1 / -1; }
+#mitigation > .btn { justify-self: start; margin-top: var(--space-2); }
+.mitigation-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.mitigation-item:has(input:checked) {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+.mitigation-item label { font-weight: 600; cursor: pointer; }
+.mitigation-item p, .mitigation-item small, .mitigation-item .mitigation-text { grid-column: 2; margin: 0; font-size: 0.9375rem; }
+/* muted limitation line */
+.mitigation-item .limitation, .mitigation-item small { grid-column: 2; color: var(--color-muted); font-size: 0.8125rem; font-style: italic; }
+@media (max-width: 720px) { #mitigation { grid-template-columns: minmax(0, 1fr); } #mitigation > .btn { justify-self: stretch; } }
+
+/* ---- 8. Comparison table ---------------------------------------------------- */
+.compare-table {
+  display: block;               /* lets the table scroll horizontally inside its own box on phones */
+  width: 100%;
+  max-height: 460px;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.compare-table:empty { display: none; }
+.compare-table caption { display: block; }
+.compare-table thead, .compare-table tbody {
+  display: table;
+  width: 100%;
+  min-width: 560px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.compare-table th, .compare-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--color-border);
+}
+.compare-table th:first-child, .compare-table td:first-child { width: 34%; text-align: left; }
+.compare-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border-bottom: 2px solid var(--color-border);
+}
+.compare-table tbody th { font-weight: 600; background: transparent; }
+.compare-table tbody td { font-family: var(--font-mono); }
+.compare-table tbody tr:nth-child(even) { background: var(--color-surface-2); }
+.compare-table tbody tr:last-child th, .compare-table tbody tr:last-child td { border-bottom: 0; }
+.compare-change { display: inline-block; margin-left: var(--space-1); font-size: 0.8125rem; font-weight: 700; white-space: nowrap; }
+.compare-change--good { color: var(--color-healthy); }
+.compare-change--bad  { color: var(--color-unavailable); }
+#compare-explanation {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-completed);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+#compare-explanation:empty { display: none; }
+
+/* ---- 9. Quiz ----------------------------------------------------------------- */
+.quiz-question { margin: 0 0 var(--space-4); padding: 0; border: 0; min-width: 0; }
+.quiz-question legend, .quiz-question h3 {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-3);
+  padding: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 52px;
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.quiz-option:hover:not(:disabled) { background: var(--color-surface-2); border-color: var(--color-primary); }
+.quiz-option[aria-checked="true"], .quiz-option[aria-pressed="true"], .quiz-option.is-selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+.quiz-option:disabled { cursor: default; }
+
+/* correct / wrong carry an icon, not just a colour */
+.quiz-option.is-correct {
+  border-color: var(--color-healthy);
+  background: color-mix(in srgb, var(--color-healthy) 14%, var(--color-surface));
+  color: var(--color-text);
+}
+.quiz-option.is-correct::after { content: "\2713  Correct"; margin-left: auto; font-weight: 700; color: var(--color-healthy); white-space: nowrap; }
+.quiz-option.is-wrong {
+  border-color: var(--color-unavailable);
+  background: color-mix(in srgb, var(--color-unavailable) 12%, var(--color-surface));
+  color: var(--color-text);
+  border-style: dashed;
+}
+.quiz-option.is-wrong::after { content: "\2715  Incorrect"; margin-left: auto; font-weight: 700; color: var(--color-unavailable); white-space: nowrap; }
+
+.quiz-feedback {
+  margin: var(--space-3) 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.quiz-feedback:empty { display: none; }
+#quiz-score { margin: var(--space-3) 0 0; font-weight: 700; font-size: 1.0625rem; }
+#quiz-score:empty { display: none; }
+
+/* ---- 10. Experiment log ------------------------------------------------------- */
+#log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+#log-list:empty::before { content: "No events yet. Entries appear here as you run the experiment."; display: block; padding: var(--space-4); color: var(--color-muted); }
+.log-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.9375rem;
+  border-left: 5px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.log-entry:last-child { border-bottom: 0; }
+.log-entry__time, .log-entry__sim { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.log-entry__level { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.log-entry__message { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.log-entry--info    { border-left-color: var(--color-completed); }
+.log-entry--info    .log-entry__level { color: var(--color-completed); }
+.log-entry--success { border-left-color: var(--color-healthy); }
+.log-entry--success .log-entry__level { color: var(--color-healthy); }
+.log-entry--warn    { border-left-color: var(--color-degraded); background: color-mix(in srgb, var(--color-degraded) 7%, var(--color-surface)); }
+.log-entry--warn    .log-entry__level { color: var(--color-degraded); }
+.log-entry--danger  { border-left-color: var(--color-unavailable); background: color-mix(in srgb, var(--color-unavailable) 8%, var(--color-surface)); }
+.log-entry--danger  .log-entry__level { color: var(--color-unavailable); }
+
+/* ---- 11. Motion --------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .queue-slot, .progress__bar, .server-badge, .node .node__box, .quiz-option, .mitigation-item { transition: none !important; }
+}

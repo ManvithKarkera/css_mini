@@ -806,18 +806,25 @@ window.Lab = window.Lab || {};
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     var simLabel = 'Simulated data';
-    var legendW = 12 + 40 + ctx.measureText('Availability %').width + 18 + 40 + ctx.measureText('Queue utilisation %').width;
+    // pick the longest legend wording that fits on one row (phones get the short one)
+    var legends = [['Availability %', 'Queue utilisation %'], ['Availability', 'Queue util.'], ['Avail.', 'Queue']];
+    var legend = legends[legends.length - 1];
+    var legendW = 0;
+    for (var li = 0; li < legends.length; li++) {
+      legendW = 34 + ctx.measureText(legends[li][0]).width + 18 + 34 + ctx.measureText(legends[li][1]).width;
+      if (L + legendW < cssW - R) { legend = legends[li]; break; }
+    }
     var simFits = L + legendW + 14 + ctx.measureText(simLabel).width < cssW - R;
     var x = L;
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = cAvail; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(x, 14); ctx.lineTo(x + 28, 14); ctx.stroke();
-    ctx.fillStyle = cText; ctx.fillText('Availability %', x + 34, 14);
-    x += 34 + ctx.measureText('Availability %').width + 18;
+    ctx.fillStyle = cText; ctx.fillText(legend[0], x + 34, 14);
+    x += 34 + ctx.measureText(legend[0]).width + 18;
     ctx.strokeStyle = cQueue; ctx.setLineDash([6, 4]);
     ctx.beginPath(); ctx.moveTo(x, 14); ctx.lineTo(x + 28, 14); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = cText; ctx.fillText('Queue utilisation %', x + 34, 14);
+    ctx.fillStyle = cText; ctx.fillText(legend[1], x + 34, 14);
     if (simFits) {
       ctx.textAlign = 'right'; ctx.fillStyle = cMuted;
       ctx.fillText(simLabel, cssW - R, 14);
