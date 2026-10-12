@@ -111,16 +111,22 @@ window.Lab = window.Lab || {};
   }
 
   // ---- paint scheduling ----------------------------------------------------
+  function paintNow() {
+    if (!paintQueued) return;                 // already painted by the other trigger below
+    paintQueued = false;
+    if (!latest) return;
+    renderCards(latest);
+    renderBadge(latest.serverState);
+    drawChart();
+  }
+
+  // One paint per frame. requestAnimationFrame is paused in background tabs, so a short timeout is the
+  // fallback: whichever fires first paints, the other finds nothing to do.
   function schedulePaint() {
     if (paintQueued) return;
     paintQueued = true;
-    requestAnimationFrame(function () {
-      paintQueued = false;
-      if (!latest) return;
-      renderCards(latest);
-      renderBadge(latest.serverState);
-      drawChart();
-    });
+    requestAnimationFrame(paintNow);
+    setTimeout(paintNow, 100);
   }
 
   // ---- chart ---------------------------------------------------------------

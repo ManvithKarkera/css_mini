@@ -203,3 +203,20 @@ Lab.Log.clear();
 Lab.Quiz.init(containerEl, questions, onFinished);   // onFinished({ score, total })
 Lab.Quiz.reset();
 ```
+
+## 5.9 Additions made after the first draft
+
+New ids (all in `index.html` unless noted): `lab-disclaimer`, `run-status`, `run-status-label`, `complete-message`,
+`lab-footer-note`, `btn-close-theory` (created by `workflow.js`), `toast-container` (created by `dashboard.js`).
+New wrapper classes: `.hero`, `.topology-scroll`, `.controls-row`, `.metrics-grid`, `.run-status`, `.disclaimer`.
+
+Classes that JS creates (styled in `base.css` / `lab.css`): `.compare-change` (`--good/--bad/--up/--down`),
+`.log-entry__time/__sim/__level/__message`, `.server-state__name/__desc`, `.toast--info/success/warn/danger`,
+`.handshake-caption`, `.handshake-list`, `.analogy`, `.quiz-progress`, `.quiz-options`, `.quiz-option__key/__text`,
+`.quiz-actions`, `.quiz-result`, `.mitigation-text`, `.limitation`, `.is-next` (soft highlight on the recommended control).
+
+Sections `section-theory`, `stepper-section`, `topology`, `controls`, `dashboard`, `mitigation`, `comparison`, `quiz`, `log`
+start with the `hidden` attribute; `workflow.js` reveals them as the student progresses.
+
+Engine additions: `Lab.Engine.DEFAULTS`, `engine._beginForTests(mode, level)` and `engine._stepForTests()` (test hooks),
+DEFAULTS `legitRetries`, `retryDelaySec`, `timeoutJitter`. Test hooks must never be used by the UI.

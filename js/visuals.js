@@ -368,10 +368,11 @@ window.Lab = window.Lab || {};
   // ---- handshake demo ------------------------------------------------------
   var DEMO_STEP_MS = 1700;
   var DEMO_MOVE_MS = 900;
+  // The dot travels between the two node edges (x = 112 and x = 308) so it never sits on top of a label.
   var DEMO_STEPS = [
-    { from: 80,  to: 520, cls: 'packet--legit',  name: 'SYN' },
-    { from: 520, to: 80,  cls: 'packet--synack', name: 'SYN-ACK' },
-    { from: 80,  to: 520, cls: 'packet--ack',    name: 'ACK' }
+    { from: 112, to: 308, cls: 'packet--legit',  name: 'SYN' },
+    { from: 308, to: 112, cls: 'packet--synack', name: 'SYN-ACK' },
+    { from: 112, to: 308, cls: 'packet--ack',    name: 'ACK' }
   ];
 
   function ensureDemo() {
@@ -379,18 +380,20 @@ window.Lab = window.Lab || {};
     if (!host) return null;
     if (demo && demo.host === host && host.contains(demo.svg)) return demo;
     host.textContent = '';
-    var s = make('svg', { viewBox: '0 0 600 140', role: 'img', 'aria-label': 'Client and server exchanging SYN, SYN-ACK and ACK' });
-    s.style.width = '100%'; s.style.maxWidth = '640px'; s.style.display = 'block';
-    make('line', { x1: 80, y1: 60, x2: 520, y2: 60, stroke: 'var(--color-border)', 'stroke-width': 3, 'class': 'link' }, s);
-    [{ x: 80, label: 'Client' }, { x: 520, label: 'Server' }].forEach(function (n) {
-      make('rect', { x: n.x - 48, y: 28, width: 96, height: 64, rx: 10, fill: 'var(--color-surface)', stroke: 'var(--color-border)', 'stroke-width': 2, 'class': 'handshake-node' }, s);
-      var t = make('text', { x: n.x, y: 66, 'text-anchor': 'middle', 'font-size': 14, 'font-family': 'var(--font-sans)', fill: 'var(--color-text)' }, s);
+    var s = make('svg', { viewBox: '0 0 420 176', role: 'img', 'aria-label': 'Client and server exchanging SYN, SYN-ACK and ACK' });
+    s.style.width = '100%'; s.style.display = 'block';
+    make('line', { x1: 112, y1: 66, x2: 308, y2: 66, stroke: 'var(--color-border)', 'stroke-width': 3, 'stroke-linecap': 'round', 'class': 'link' }, s);
+    [{ x: 70, label: 'Client', icon: 'client' }, { x: 350, label: 'Server', icon: 'server' }].forEach(function (n) {
+      make('rect', { x: n.x - 42, y: 26, width: 84, height: 82, rx: 12, fill: 'var(--color-surface)', stroke: 'var(--color-border)', 'stroke-width': 2, 'class': 'handshake-node' }, s);
+      var iconString = Lab.Icons && Lab.Icons[n.icon];
+      if (iconString) placeIcon(s, iconString, n.x - 15, 36, 30);
+      var t = make('text', { x: n.x, y: 98, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 600, 'font-family': 'var(--font-sans)', fill: 'var(--color-text)' }, s);
       t.textContent = n.label;
     });
-    var dot = make('circle', { r: 8, cx: 80, cy: 60, opacity: 0, 'class': 'packet' }, s);
-    var tag = make('text', { x: 80, y: 40, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, 'font-family': 'var(--font-mono)', fill: 'var(--color-text)', opacity: 0 }, s);
-    var done = make('text', { x: 300, y: 125, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, 'font-family': 'var(--font-sans)', fill: 'var(--color-healthy)', opacity: 0 }, s);
-    done.textContent = '✓ Connection established';
+    var dot = make('circle', { r: 9, cx: 112, cy: 66, opacity: 0, 'class': 'packet' }, s);
+    var tag = make('text', { x: 112, y: 46, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, 'font-family': 'var(--font-mono)', fill: 'var(--color-text)', opacity: 0 }, s);
+    var done = make('text', { x: 210, y: 140, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, 'font-family': 'var(--font-sans)', fill: 'var(--color-healthy)', opacity: 0 }, s);
+    done.textContent = '\u2713 Connection established';
     var caption = document.createElement('p');
     caption.setAttribute('role', 'status');
     caption.className = 'handshake-caption';

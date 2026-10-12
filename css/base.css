@@ -667,3 +667,117 @@ select.field, select { padding-right: var(--space-2); cursor: pointer; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   14. Added content elements (disclaimer, handshake list, analogy, footer)
+   ========================================================================== */
+.disclaimer {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-pending) 12%, var(--color-surface));
+  border: 1px dashed var(--color-pending);
+  border-radius: var(--radius-sm);
+}
+.disclaimer::before { content: "\24D8"; font-weight: 700; line-height: 1.4; }
+.disclaimer:empty { display: none; }
+
+.handshake-list {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  counter-reset: handshake;
+}
+.handshake-list > li {
+  counter-increment: handshake;
+  position: relative;
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 36px);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  max-width: 75ch;
+}
+.handshake-list > li::before {
+  content: counter(handshake);
+  position: absolute;
+  left: var(--space-3);
+  top: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 26px; height: 26px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+.handshake-list__name { font-family: var(--font-mono); color: var(--color-primary); }
+
+.analogy {
+  max-width: 75ch;
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-pending) 10%, var(--color-surface));
+  border-left: 4px solid var(--color-pending);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.analogy p { margin: var(--space-2) 0 0; }
+.analogy__title { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; }
+
+#btn-close-theory { margin-top: var(--space-2); }
+#complete-message { color: var(--color-muted); margin: 0 0 var(--space-2); }
+
+.lab-footer { padding-top: 0; }
+.lab-footer p { margin: 0; font-size: 0.8125rem; color: var(--color-muted); text-align: center; }
+
+/* ==========================================================================
+   15. Polish: hero, theory layout, entrance animation, "next action" guide
+   ========================================================================== */
+/* Hero banner on the Before You Begin screen (dark navy in both themes, white text) */
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 var(--space-5);
+  padding: var(--space-6);
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(255, 141, 98, 0.55) 0 7px, transparent 8px),
+    radial-gradient(circle at 78% 62%, rgba(61, 219, 176, 0.5) 0 5px, transparent 6px),
+    radial-gradient(circle at 94% 75%, rgba(255, 255, 255, 0.35) 0 4px, transparent 5px),
+    linear-gradient(135deg, #102a63 0%, #1d4fb8 62%, #2c72e0 100%);
+  border-radius: var(--radius);
+}
+.hero__eyebrow { margin: 0 0 var(--space-2); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #cfe0ff; }
+.hero__title { margin: 0 0 var(--space-4); max-width: 24em; font-size: 1.625rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+.hero__facts { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0; padding: 0; list-style: none; font-size: 0.9375rem; color: #e6efff; }
+.hero__facts strong { color: #ffffff; font-size: 1.0625rem; }
+.guidelines > h2 { margin-top: var(--space-2); }
+
+/* Theory: reading column on the left, the handshake animation sticks on the right (desktop). */
+@media (min-width: 961px) {
+  .theory { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto auto auto auto 1fr; column-gap: var(--space-6); align-items: start; }
+  .theory > h2 { grid-column: 1 / -1; }
+  .theory > #theory-content { grid-column: 1; grid-row: 2 / span 4; margin-bottom: 0; }
+  .theory > #handshake-demo { grid-column: 2; grid-row: 2; margin-bottom: var(--space-2); }
+  .theory > #btn-play-handshake { grid-column: 2; grid-row: 3; justify-self: start; }
+  .theory > #btn-close-theory { grid-column: 2; grid-row: 4; justify-self: start; }
+}
+
+/* Sections fade up when they unlock */
+@keyframes section-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+main.container > .section:not([hidden]) { animation: section-in 0.35s ease-out both; }
+
+/* Soft guide on the recommended next control */
+@keyframes next-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
+  50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-primary) 0%, transparent); }
+}
+.btn.is-next:not(:disabled) { animation: next-pulse 1.8s ease-in-out infinite; }
+.btn--danger.is-next:not(:disabled) { animation-name: none; box-shadow: 0 0 0 3px color-mix(in srgb, #b42318 30%, transparent); }
+
+@media (max-width: 600px) { .hero { padding: var(--space-5) var(--space-4); } .hero__title { font-size: 1.3125rem; } }

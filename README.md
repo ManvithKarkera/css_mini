@@ -1,49 +1,82 @@
 # SYN Flood Virtual Lab
 
-A browser-only educational simulation: a student walks through an 8-step
-experiment and watches a simulated server lose availability as its TCP
-connection queue fills, then recover when defences are switched on.
-Plain HTML, CSS and JavaScript. No backend, no libraries, **no real network
-traffic**. All numbers are simulated educational estimates.
+A browser-only educational simulation. A student works through eight guided steps and watches a **simulated** server lose
+availability as its TCP connection queue fills during a SYN flood, then recover when defences are switched on.
+Plain HTML, CSS and JavaScript: no backend, no libraries, **no real network traffic**. All numbers are simulated
+educational estimates.
+
+![screenshot placeholder](docs/screenshot.png)  <!-- TODO (Meet): add a screenshot -->
 
 ## Run it
 
-- Open `index.html` directly in Chrome (no server needed).
-- Add `?mock=1` to the URL to use the fake engine while the real one is in progress
-  (e.g. `index.html?mock=1`).
-- `node build.js` produces the final three-file deliverable in `dist/`
-  (`index.html`, `style.css`, `script.js`); open `dist/index.html`.
-
-## Contract
-
-`CONTRACT.md` is the source of truth for every HTML id, CSS class, function
-name, event and data shape. Do not rename anything in it without telling Manvith.
-
-## Who owns what
-
-Each person edits only their own files, so Git merges never conflict.
-
-| Member | Files |
+| What | How |
 |---|---|
-| Manvith Karkera | `CONTRACT.md`, `index.html`, `js/engine.js`, `js/workflow.js`, `js/quiz.js`, `js/mock-engine.js`, `build.js`, `tests/engine.test.js` |
-| Pranav Koradiya | `js/visuals.js`, `js/dashboard.js` |
-| Yash Masaye | `css/base.css`, Figma mockup |
-| Sanika Lobo | `css/lab.css`, `js/icons.js`, QA |
-| Meet Mangaonkar | `js/content.js`, `README.md`, demo video, slides |
+| Open the lab | Double-click `index.html` (works from `file://`, no server needed) |
+| Fake engine for visual work | `index.html?mock=1` (dev only, never shipped) |
+| Build the 3-file deliverable | `node build.js` -> `dist/index.html`, `dist/style.css`, `dist/script.js` |
+| Engine tests | `node tests/engine.test.js` |
+| Quick API/id check | `node tests/smoke.test.js` (run `node build.js` first) |
+| Full student journey in a real browser | `node tests/e2e.js` (add `--dist` to test the built 3-file version; needs Chrome, Chromium or Edge, or set `CHROME=/path`) |
 
-JS load order: `content.js`, `icons.js`, `engine.js`, `mock-engine.js` (dev only),
-`visuals.js`, `dashboard.js`, `quiz.js`, `workflow.js`.
+## What is already built
+
+A complete, working first version of everything. Nobody has to start from scratch: **improve your own part**.
+
+| Area | File | Status | Good next improvements |
+|---|---|---|---|
+| Contract, skeleton, build | `CONTRACT.md`, `index.html`, `build.js` | done | Manvith: keep the contract in sync |
+| Simulation engine | `js/engine.js` | done, calibrated, tested | Manvith: tune constants in `DEFAULTS`; keep `node tests/engine.test.js` green |
+| Workflow, quiz, reset, completion | `js/workflow.js`, `js/quiz.js` | done, covered by e2e | Manvith: bonus features (print results, theme toggle, custom attack level) |
+| Topology, packets, handshake demo | `js/visuals.js` | done | Pranav: richer packet animation, test on slow devices |
+| Dashboard, chart, log, comparison | `js/dashboard.js` | done | Pranav: chart polish, comparison wording |
+| Layout, buttons, stepper, modals | `css/base.css` | done (light + dark, responsive) | Yash: match your Figma mockup, refine spacing and the accessibility pass |
+| Simulation components, icons | `css/lab.css`, `js/icons.js` | done | Sanika: redraw icons, refine node/packet/queue styling, QA |
+| All text and the quiz | `js/content.js` | complete first draft | Meet: fact-check, tighten wording, replace the 9 guidelines with the brief's exact text |
+| README, demo video, slides | `README.md`, `docs/` | README draft | Meet |
+
+Only edit your own files so Git merges never conflict. If you need a change in someone else's file, tell the owner.
+
+## How the lab works
+
+- **Queue model.** The server has 100 half-open slots. Legitimate clients (5 SYN/s) complete their handshake after 1 s and
+  free the slot. Attack SYNs mostly never complete, so they hold a slot until a ~30 s timeout.
+- **Cause and effect.** Each simulated second the engine expires entries, generates arrivals, applies the firewall and rate
+  limit, then gives each SYN a slot, a SYN cookie or a rejection. Metrics and the server state are derived from the queue.
+- **Defences.** SYN cookies, rate limiting, shorter timeouts and firewall filtering, each with a stated limitation.
+  None gives 100% protection.
+- **Deterministic.** A seeded PRNG (mulberry32, seed 1337) means the same settings always give the same result.
+
+## Team
+
+| Member | Role |
+|---|---|
+| Manvith Karkera | Engine, workflow, integration |
+| Pranav Koradiya | Visualisation and dashboard |
+| Yash Masaye | UI design and layout |
+| Sanika Lobo | Component design, icons, QA |
+| Meet Mangaonkar | Content, README, demo video, slides |
 
 ## Git workflow
 
-1. Each person works on their own branch: `manvith`, `pranav`, `yash`, `sanika`, `meet`.
+1. Each person works on their own branch: `manvith`, `pranav`, `yash`, `sanika`, `meet` (they start from `main`).
 2. At each sync everyone pushes; Manvith merges all branches into `main`.
 3. Everyone pulls `main` after each sync to see the whole page.
 
-Bug reports go in the team group as *where / what happened / what should
-happen / screenshot*, tagging the file owner.
+Bug reports: post *where / what happened / what should happen / screenshot* and tag the file owner.
 
 ## Docs
 
-- `docs/build-plan.pdf` — build plan, schedule and prompts
-- `tests/checklist.md` — QA checklist
+- `CONTRACT.md` - every id, class, function, event and data shape (source of truth)
+- `docs/build-plan.pdf` - build plan, schedule and prompts
+- `tests/checklist.md` - QA checklist
+
+## Ethics
+
+The lab sends no traffic. It exists to teach how denial-of-service attacks work so students can defend systems. Never run
+flood traffic against a network you do not own or have written permission to test.
+
+## References
+
+- RFC 4987, *TCP SYN Flooding Attacks and Common Mitigations*
+- D. J. Bernstein, *SYN cookies*
+- H. Wang, D. Zhang and K. G. Shin, *Detecting SYN Flooding Attacks*, IEEE INFOCOM 2002

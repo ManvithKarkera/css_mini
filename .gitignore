@@ -4,3 +4,5 @@ Thumbs.db
 *.log
 *.zip
 .claude/
+tests/.e2e-page.html
+dist/.e2e-page.html
