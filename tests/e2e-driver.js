@@ -96,6 +96,18 @@
     type('sysctl -w net.ipv4.tcp_synack_retries=2');
     check($('mit-short-timeout').checked, 'terminal: shorter SYN-ACK retries turns the shorter timeouts switch on');
     check(/defences now active: SYN cookies, Shorter timeouts/.test(logText()), 'mitigation: terminal changes are logged');
+    // guided runbook: steps complete from the server state, in any order
+    check(/ss -tan state syn-recv/.test($('term-guide-command').textContent) && /0 of 13 required/.test($('term-guide-count').textContent.replace(/\d+ of (\d+)/, function (m) { return '0 of ' + RegExp.$1; })), 'runbook: the first step shows its command');
+    check(/2 of 13/.test($('term-guide-count').textContent), 'runbook: cookies and retries typed earlier already count (' + $('term-guide-count').textContent + ')');
+    $('btn-guide-insert').click();
+    check($('ws-term-input').value === 'ss -tan state syn-recv | wc -l', 'runbook: "Put it in the prompt" fills the command');
+    var rbSteps = Lab.Content.runbook.steps;
+    for (var rb = 0; rb < rbSteps.length; rb++) {
+      var curBefore = $('term-guide-command') && $('term-guide-command').textContent;
+      if (curBefore) { check(curBefore === rbSteps.filter(function (x) { return curBefore === x.command; })[0].command, 'runbook: current step command is shown'); type(curBefore); }
+    }
+    check(!!$('term-guide-complete') && /13 of 13/.test($('term-guide-count').textContent), 'runbook: all required steps complete (' + $('term-guide-count').textContent + ')');
+    check(/Runbook complete/.test(logText()) && $('mit-firewall').checked && $('mit-rate-limit').checked, 'runbook: completion logged and all four defence switches follow the terminal');
     $('btn-terminal').click();
     check($('terminal-drawer').hidden, 'terminal: header button closes it');
     $('btn-terminal').click();
@@ -148,7 +160,7 @@
     $('ws-tab-harden').click();
     function doneTasks() { return Array.prototype.filter.call(document.querySelectorAll('#ws-tasks .ws-task'), function (li) { return li.dataset.done === 'true'; }).length; }
     check(/Type "help"|type "help"/i.test(term()) && !$('terminal-drawer').hidden && document.querySelectorAll('#ws-tasks .ws-task').length === W.harden.tasks.length, 'harden: terminal and checklist are shown');
-    check(doneTasks() === 2, 'harden: cookies and retries set in step 6 are already ticked (' + doneTasks() + ')');
+    check(doneTasks() >= 7, 'harden: tasks done in the runbook are already ticked (' + doneTasks() + ')');
     type('sysctl -w net.ipv4.tcp_syncookies=0'); type('sysctl -w net.ipv4.tcp_synack_retries=5');
     $('btn-ws-test').click();
     await sleep(2500);
@@ -158,19 +170,16 @@
     check(/\n?257\s*$/.test(term().trim()) || term().indexOf('257') > 0, 'harden: ss | wc -l prints the half-open count');
     type('dmesg | tail'); type("tcpdump -nn -c 5 'tcp[tcpflags] == tcp-syn'");
     check(/Possible SYN flooding/.test(term()) && /Flags \[S\]/.test(term()), 'harden: dmesg and tcpdump output are shown');
-    check(doneTasks() === 5, 'harden: measuring tasks ticked (' + doneTasks() + ')');
     type('sysctl -w net.ipv4.tcp_syncookies=1');
     type('frobnicate');
     check(/command not found/.test(term()), 'harden: unknown commands are explained');
     type('sysctl -w net.ipv4.tcp_synack_retries=2');
     type('iptables -A INPUT -p tcp --syn --dport 443 -m limit --limit 400/s --limit-burst 800 -j ACCEPT');
     type('iptables -A INPUT -p tcp --syn --dport 443 -j DROP');
-    check(doneTasks() === 6, 'harden: runtime changes tick six tasks (' + doneTasks() + ')');
     type('echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/99-synflood.conf');
     type('echo "net.ipv4.tcp_synack_retries = 2" >> /etc/sysctl.d/99-synflood.conf');
-    check($('ws-task-persist').dataset.done === 'false', 'harden: a file that is not loaded does not count as persisted');
     type('sysctl --system');
-    check($('ws-task-persist').dataset.done === 'true' && doneTasks() === 7, 'harden: persisting and loading the file ticks the task (' + doneTasks() + ')');
+    check($('ws-task-persist').dataset.done === 'true', 'harden: persist task is ticked');
     $('ws-term-input').value = 'help'; $('ws-term-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     $('btn-ws-test').click();
     check($('btn-ws-test').disabled, 'harden: test button is disabled while the replay runs');

@@ -224,12 +224,17 @@
       <button type="button" id="btn-term-close" class="term-drawer__btn" aria-label="Close the terminal">Close &#x2715;</button>
     </span>
   </div>
-  <div id="ws-term-output" class="ws-term__out" role="log" aria-live="polite" aria-label="Terminal output" tabindex="0"></div>
-  <form id="ws-term-form" class="ws-term__form" autocomplete="off">
-    <label class="ws-term__prompt" for="ws-term-input">root@web01:~#</label>
-    <input id="ws-term-input" class="ws-term__input" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Type a Linux command">
-  </form>
-  <div id="term-chips" class="ws-chips"></div>
+  <div class="term-drawer__body">
+    <aside id="term-guide" class="term-guide" aria-label="Guided runbook"></aside>
+    <div class="term-main">
+      <div id="ws-term-output" class="ws-term__out" role="log" aria-live="polite" aria-label="Terminal output" tabindex="0"></div>
+      <form id="ws-term-form" class="ws-term__form" autocomplete="off">
+        <label class="ws-term__prompt" for="ws-term-input">root@web01:~#</label>
+        <input id="ws-term-input" class="ws-term__input" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Type a Linux command">
+      </form>
+      <div id="term-chips" class="ws-chips"></div>
+    </div>
+  </div>
 </section>
 
 <dialog id="modal-complete" class="modal" aria-labelledby="complete-heading">
