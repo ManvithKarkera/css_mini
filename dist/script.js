@@ -108,7 +108,7 @@ window.Lab = window.Lab || {};
       {
         id: 6,
         title: 'Enable mitigation',
-        instructions: 'Switch on one or more defences, then press Run With Mitigation. The same attack level is replayed against the protected server. Read each defence\'s explanation and its limitation as you decide.'
+        instructions: 'Open the terminal (Terminal button, top right). You are root on the simulated server web01: configure real defences with Linux commands such as sysctl and iptables. Type help to see what is supported. The switches below show which defences your configuration turns on. When at least one is on, press Run With Mitigation to replay the same attack against your configuration.'
       },
       {
         id: 7,
@@ -473,7 +473,7 @@ window.Lab = window.Lab || {};
 
     // ------------------------------------------------------------------ 3. HARDEN
     harden: {
-      brief: 'web01 is under a spoofed SYN flood right now. You are root on the server. Work through the checklist by typing real Linux commands in the terminal. Type `help` to see what the lab supports. When your changes are in place, test the server under the same attack you ran in the simulation.',
+      brief: 'web01 is under a spoofed SYN flood right now. You are root on the server. Work through the checklist by typing real Linux commands in the terminal pop-up (the Terminal button in the header). Type `help` to see what the lab supports. When your changes are in place, test the server under the same attack you ran in the simulation.',
       motd: [
         'web01 - Ubuntu 22.04 LTS (simulated)  |  you are root',
         'An attack is in progress on port 443. Type "help" for supported commands.',
@@ -754,6 +754,13 @@ window.Lab = window.Lab || {};
       q.answer = target;
     });
   }
+  var CMD = {
+    synCookies: 'sysctl -w net.ipv4.tcp_syncookies=1',
+    rateLimit: 'iptables -A INPUT -p tcp --syn --dport 443 -m limit --limit 400/s --limit-burst 800 -j ACCEPT\niptables -A INPUT -p tcp --syn --dport 443 -j DROP',
+    shortTimeout: 'sysctl -w net.ipv4.tcp_synack_retries=2',
+    firewall: 'sysctl -w net.netfilter.nf_conntrack_tcp_loose=0\niptables -t raw -A PREROUTING -p tcp -m tcp --syn --dport 443 -j CT --notrack\niptables -A INPUT -p tcp -m tcp --dport 443 -m conntrack --ctstate INVALID,UNTRACKED -j SYNPROXY --sack-perm --timestamp --wscale 7 --mss 1460'
+  };
+  Object.keys(CMD).forEach(function (k) { if (Lab.Content.mitigations[k]) Lab.Content.mitigations[k].command = CMD[k]; });
   var WK = Lab.Content.workshop;
   balance(WK.understand.checkpoints, 2);
   balance(WK.investigate.questions, 3);
@@ -3287,12 +3294,12 @@ window.Lab = window.Lab || {};
   var done = {};                          // module id -> true
   var tasksDone = {};                     // harden task id -> true
   var testEngine = null;
+  var offTerminal = null;
   var testRunning = false;
   var finishedFired = false;
   var currentTab = 'understand';
   var incidentState = null;
   var scores = { incidentFirstTry: 0, incidentTotal: 0, layersFirstTry: 0, layersTotal: 0 };
-  var history = [], historyPos = 0;
 
   function el(tag, className, text) {
     var n = document.createElement(tag);
@@ -3556,28 +3563,12 @@ window.Lab = window.Lab || {};
     p.appendChild(inline(el('p'), H.brief));
 
     var lay = el('div', 'ws-harden');
-    // terminal
-    var termWrap = el('div', 'ws-term');
-    var bar = el('div', 'ws-term__bar'); bar.appendChild(el('span', null, 'root@web01 — simulated terminal')); termWrap.appendChild(bar);
-    var out = el('div', 'ws-term__out'); out.id = 'ws-term-output'; out.setAttribute('role', 'log'); out.setAttribute('aria-live', 'polite'); out.tabIndex = 0;
-    out.setAttribute('aria-label', 'Terminal output');
-    termWrap.appendChild(out);
-    var form = el('form', 'ws-term__form'); form.id = 'ws-term-form'; form.autocomplete = 'off';
-    var prompt = el('label', 'ws-term__prompt', 'root@web01:~#'); prompt.htmlFor = 'ws-term-input';
-    var input = el('input', 'ws-term__input'); input.id = 'ws-term-input'; input.type = 'text'; input.spellcheck = false;
-    input.setAttribute('autocapitalize', 'off'); input.setAttribute('autocorrect', 'off'); input.autocomplete = 'off';
-    input.setAttribute('aria-label', 'Type a Linux command');
-    form.appendChild(prompt); form.appendChild(input);
-    termWrap.appendChild(form);
-    var chips = el('div', 'ws-chips');
-    chips.appendChild(el('span', 'ws-chips__label', 'Try:'));
-    ['help', 'ss -tan state syn-recv | wc -l', 'dmesg | tail', 'sysctl -a | grep syn', 'iptables -S'].forEach(function (c) {
-      var b = el('button', 'chip', c); b.type = 'button';
-      b.addEventListener('click', function () { input.value = c; input.focus(); });
-      chips.appendChild(b);
-    });
-    termWrap.appendChild(chips);
-    lay.appendChild(termWrap);
+    var opener = el('div', 'ws-opener');
+    opener.appendChild(el('p', null, 'The terminal is a pop-up panel that is available throughout the lab. Open it, type real commands, and the checklist below ticks itself.'));
+    var ob = el('button', 'btn btn--primary', 'Open the terminal'); ob.type = 'button'; ob.id = 'btn-ws-open-terminal';
+    ob.addEventListener('click', function () { Lab.Terminal.open(true); });
+    opener.appendChild(ob);
+    lay.appendChild(opener);
 
     // checklist
     var side = el('div', 'ws-side');
@@ -3617,25 +3608,6 @@ window.Lab = window.Lab || {};
     renderBlocks(p, H.reference);
 
     // wiring
-    function print(text, cls) { var d = el('div', cls || 'ws-line'); d.textContent = text; out.appendChild(d); }
-    H.motd.forEach(function (l) { print(l, 'ws-line ws-line--dim'); });
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var cmd = input.value;
-      input.value = '';
-      if (cmd.trim()) { history.push(cmd); historyPos = history.length; }
-      print('root@web01:~# ' + cmd, 'ws-line ws-line--cmd');
-      var r = run(host, cmd);
-      if (r.clear) out.textContent = '';
-      r.lines.forEach(function (l) { print(l); });
-      out.scrollTop = out.scrollHeight;
-      updateTasks();
-    });
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowUp' && history.length) { e.preventDefault(); historyPos = Math.max(0, historyPos - 1); input.value = history[historyPos]; }
-      else if (e.key === 'ArrowDown' && history.length) { e.preventDefault(); historyPos = Math.min(history.length, historyPos + 1); input.value = history[historyPos] || ''; }
-    });
-    out.addEventListener('click', function () { var sel = window.getSelection && window.getSelection(); if (!sel || sel.isCollapsed) input.focus(); });
     tb.addEventListener('click', runHardeningTest);
     updateTasks();
   }
@@ -3791,6 +3763,7 @@ window.Lab = window.Lab || {};
       if (tab) { tab.setAttribute('aria-selected', on ? 'true' : 'false'); tab.tabIndex = on ? 0 : -1; }
       if (panel) panel.hidden = !on;
     });
+    if (id === 'harden' && Lab.Terminal && root && root.offsetParent !== null) Lab.Terminal.open(false);
     if (focus && $('ws-tab-' + id)) $('ws-tab-' + id).focus();
   }
 
@@ -3860,9 +3833,10 @@ window.Lab = window.Lab || {};
       W = Lab.Content.workshop;
       root = rootEl;
       opts = options || {};
-      host = createHost();
+      host = Lab.Terminal.getHost();
+      if (offTerminal) offTerminal();
+      offTerminal = Lab.Terminal.on(function () { updateTasks(); });
       done = {}; tasksDone = {}; finishedFired = false; testRunning = false;
-      history = []; historyPos = 0;
       scores = { incidentFirstTry: 0, incidentTotal: 0, layersFirstTry: 0, layersTotal: 0 };
       currentTab = 'understand';
       if (root) build();
@@ -3903,6 +3877,129 @@ window.Lab = window.Lab || {};
       updateTasks();
       if (callback) callback();
     }
+  };
+})(window.Lab);
+
+/* ===== js/terminal.js ===== */
+/* ==========================================================================
+   terminal.js — OWNER: Manvith Karkera
+   Purpose: the pop-up Linux terminal (Lab.Terminal). A drawer docked to the bottom
+   of the page, opened from the header "Terminal" button. It runs commands through
+   the pure simulated shell in js/workshop.js and owns the one shared host
+   configuration. Whatever the student configures here (sysctl, iptables, nft) is
+   evaluated into the four defences the simulation engine understands, which is how
+   the terminal controls the mitigations in step 6.
+   Nothing here touches the real machine.
+   ========================================================================== */
+window.Lab = window.Lab || {};
+(function (Lab) {
+  'use strict';
+
+  var host = null, listeners = [];
+  var drawer, out, input, form, openBtn;
+  var history = [], historyPos = 0;
+  var tall = false;
+  var wired = false;
+
+  function $(id) { return document.getElementById(id); }
+  function shell() { return Lab.Workshop.shell; }
+
+  function print(text, cls) {
+    var d = document.createElement('div');
+    d.className = cls || 'ws-line';
+    d.textContent = text;
+    out.appendChild(d);
+  }
+
+  function motd() {
+    var m = (Lab.Content.workshop && Lab.Content.workshop.harden.motd) || [];
+    m.forEach(function (l) { print(l, 'ws-line ws-line--dim'); });
+    print('Tip: type "help" for commands, or click a suggestion below.', 'ws-line ws-line--dim');
+  }
+
+  function notify(line, result) {
+    listeners.slice().forEach(function (fn) { fn(host, line, result); });
+  }
+
+  function exec(line, silentEcho) {
+    if (line.trim()) { history.push(line); historyPos = history.length; }
+    if (!silentEcho) print('root@web01:~# ' + line, 'ws-line ws-line--cmd');
+    var r = shell().run(host, line);
+    if (r.clear) out.textContent = '';
+    r.lines.forEach(function (l) { print(l); });
+    out.scrollTop = out.scrollHeight;
+    notify(line, r);
+    return r;
+  }
+
+  function setOpen(open, focus) {
+    if (!drawer) return;
+    drawer.hidden = !open;
+    document.body.classList.toggle('has-terminal', open);
+    if (openBtn) { openBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); openBtn.classList.toggle('is-open', open); }
+    if (open && focus !== false) input.focus({ preventScroll: true });
+  }
+
+  function wire() {
+    if (wired) return;
+    wired = true;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var cmd = input.value;
+      input.value = '';
+      exec(cmd);
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowUp' && history.length) { e.preventDefault(); historyPos = Math.max(0, historyPos - 1); input.value = history[historyPos]; }
+      else if (e.key === 'ArrowDown' && history.length) { e.preventDefault(); historyPos = Math.min(history.length, historyPos + 1); input.value = history[historyPos] || ''; }
+      else if (e.key === 'Escape') { setOpen(false); if (openBtn) openBtn.focus(); }
+    });
+    out.addEventListener('click', function () { var sel = window.getSelection && window.getSelection(); if (!sel || sel.isCollapsed) input.focus(); });
+    $('btn-term-close').addEventListener('click', function () { setOpen(false); if (openBtn) openBtn.focus(); });
+    $('btn-term-clear').addEventListener('click', function () { out.textContent = ''; input.focus(); });
+    $('btn-term-size').addEventListener('click', function () {
+      tall = !tall;
+      drawer.classList.toggle('is-tall', tall);
+      $('btn-term-size').setAttribute('aria-label', tall ? 'Make the terminal shorter' : 'Make the terminal taller');
+    });
+    if (openBtn) openBtn.addEventListener('click', function () { setOpen(drawer.hidden, true); });
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey && (e.key === '`' || e.code === 'Backquote') && openBtn && !openBtn.hidden) { e.preventDefault(); setOpen(drawer.hidden, true); }
+    });
+    var chips = $('term-chips');
+    if (chips) {
+      var lab = document.createElement('span'); lab.className = 'ws-chips__label'; lab.textContent = 'Try:'; chips.appendChild(lab);
+      ['help', 'ss -tan state syn-recv | wc -l', 'dmesg | tail', 'sysctl -a | grep syn', 'sysctl -w net.ipv4.tcp_syncookies=1', 'iptables -S'].forEach(function (c) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = c;
+        b.addEventListener('click', function () { input.value = c; input.focus(); });
+        chips.appendChild(b);
+      });
+    }
+  }
+
+  Lab.Terminal = {
+    init: function () {
+      drawer = $('terminal-drawer'); out = $('ws-term-output'); input = $('ws-term-input'); form = $('ws-term-form'); openBtn = $('btn-terminal');
+      host = shell().createHost();
+      if (!drawer || !out || !input || !form) return;
+      wire();
+      out.textContent = '';
+      motd();
+    },
+    reset: function () {
+      host = shell().createHost();
+      history = []; historyPos = 0;
+      if (out) { out.textContent = ''; motd(); }
+      setOpen(false, false);
+    },
+    getHost: function () { return host; },
+    getDefences: function () { return shell().evaluate(host); },
+    setLevel: function (level) { if (host) host.level = level; },
+    on: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (f) { return f !== fn; }); }; },
+    open: function (focus) { setOpen(true, focus); },
+    close: function () { setOpen(false, false); },
+    isOpen: function () { return !!drawer && !drawer.hidden; },
+    exec: function (line) { return exec(line, false); }       // runs a command as if typed (used by tests)
   };
 })(window.Lab);
 
@@ -3948,6 +4045,8 @@ window.Lab = window.Lab || {};
   var workshop = { initialised: false, done: false, summary: null };
   var shownStep = 0;                     // the step the panel currently shows
   var pendingConfirm = null;
+  var terminalPopped = false;            // the terminal opens by itself once, when step 6 starts
+  var lastDefences = '';
 
   // ---- small helpers -------------------------------------------------------
   function $(id) { return document.getElementById(id); }
@@ -4045,6 +4144,7 @@ window.Lab = window.Lab || {};
       lim.appendChild(el('strong', null, 'Limitation: '));
       lim.appendChild(document.createTextNode(m.limitation));
       item.appendChild(lim);
+      if (m.command) { var cmd = el('pre', 'mitigation-command'); cmd.appendChild(el('code', null, m.command)); item.appendChild(cmd); }
     });
 
     // Step list titles.
@@ -4118,6 +4218,7 @@ window.Lab = window.Lab || {};
     if (started && cur >= 8 && !workshop.initialised) initWorkshop();
     show($('quiz'), started && cur >= 9);
     if (started && cur === 9 && !quiz.initialised) initQuiz();
+    if (started && cur >= 6 && !terminalPopped) { terminalPopped = true; Lab.Terminal.open(true); log('Terminal opened: configure the server\'s defences with Linux commands.', 'info'); }
     renderStepPanel();
     updateControls();
     if (moveFocus && cur !== shownStep) focusEl($('step-title'));
@@ -4139,7 +4240,7 @@ window.Lab = window.Lab || {};
     setDisabled('attack-level', !attackAllowed);
     setDisabled('btn-stop-sim', !running);
     setDisabled('btn-stop', !running);
-    Object.keys(MIT_INPUTS).forEach(function (id) { setDisabled(id, !mitigationAllowed); });
+    Object.keys(MIT_INPUTS).forEach(function (id) { setDisabled(id, true); });   // read-only: the terminal controls them
     setDisabled('btn-run-mitigated', !(mitigationAllowed && anyMitigationSelected()));
 
     var runBtn = $('btn-run-mitigated');
@@ -4182,12 +4283,26 @@ window.Lab = window.Lab || {};
     if (bar) bar.style.width = '0%';
   }
 
+  // The terminal is the control panel: whatever the Linux configuration enables is shown on the four switches.
+  function onTerminalCommand() {
+    var ev = Lab.Terminal.getDefences();
+    Object.keys(MIT_INPUTS).forEach(function (id) { var c = $(id); if (c) c.checked = !!ev.defences[MIT_INPUTS[id]]; });
+    var now = mitigationNames(ev.defences).join(', ');
+    if (now !== lastDefences) {
+      lastDefences = now;
+      log('Terminal: defences now active: ' + (now || 'none') + '.', 'info');
+      if (engine.isRunning()) notify('Defence changes apply to the next run.', 'info');
+    }
+    updateControls();
+  }
+
   // ---- journey actions -------------------------------------------------------
   function startLab() {
     started = true;
     show($('screen-guidelines'), false);
     LAB_SECTIONS.forEach(function (id) { show($(id), true); });
     show($('section-theory'), true);
+    show($('btn-terminal'), true);
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     setStatus(1, 'in-progress');
     shownStep = 0;
@@ -4229,6 +4344,7 @@ window.Lab = window.Lab || {};
     engine.setMitigation(NO_DEFENCES);
     currentRunKind = 'attack';
     clearVisuals();
+    Lab.Terminal.setLevel(level);
     engine.runAttack(level);
     // Step 3 (launch) is done the moment the flood starts; steps 4 and 5 follow its progress.
     completeStep(3);
@@ -4246,6 +4362,7 @@ window.Lab = window.Lab || {};
     currentRunKind = 'mitigated';
     clearVisuals();
     setStatus(6, 'in-progress');
+    Lab.Terminal.setLevel(level);
     engine.runAttack(level);
     refresh(false);
   }
@@ -4411,6 +4528,9 @@ window.Lab = window.Lab || {};
     Lab.Dashboard.reset();
     Lab.Log.clear();
     Lab.Quiz.reset();
+    Lab.Terminal.reset();
+    terminalPopped = false;
+    lastDefences = '';
     if (workshop.initialised) Lab.Workshop.reset();
     Object.keys(MIT_INPUTS).forEach(function (id) { var c = $(id); if (c) c.checked = false; });
     runs = { baseline: null, attack: null, mitigated: null };
@@ -4425,6 +4545,7 @@ window.Lab = window.Lab || {};
 
     if (toStart) {
       started = false;
+      show($('btn-terminal'), false);
       if ($('ack-checkbox')) $('ack-checkbox').checked = false;
       LAB_SECTIONS.concat(['section-theory', 'mitigation', 'comparison', 'workshop', 'quiz']).forEach(function (id) { show($(id), false); });
       show($('screen-guidelines'), true);
@@ -4456,13 +4577,7 @@ window.Lab = window.Lab || {};
     $('btn-stop').addEventListener('click', stopRun);
     $('btn-run-mitigated').addEventListener('click', startMitigated);
 
-    Object.keys(MIT_INPUTS).forEach(function (id) {
-      $(id).addEventListener('change', function (e) {
-        var m = C.mitigations[MIT_INPUTS[id]];
-        log('Mitigation ' + (e.target.checked ? 'enabled' : 'disabled') + ': ' + m.title + '.', 'info');
-        updateControls();
-      });
-    });
+    $('btn-open-terminal-mit').addEventListener('click', function () { Lab.Terminal.open(true); });
 
     $('btn-reset').addEventListener('click', function () { requestReset(false); });
     $('btn-restart').addEventListener('click', function () { requestReset(true); });
@@ -4487,6 +4602,8 @@ window.Lab = window.Lab || {};
     engine = Lab.Engine.create();
     Lab.Visuals.init(engine);
     Lab.Dashboard.init(engine);
+    Lab.Terminal.init();
+    Lab.Terminal.on(onTerminalCommand);
     renderContent();
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     wire();

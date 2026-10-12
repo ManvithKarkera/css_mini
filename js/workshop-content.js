@@ -236,7 +236,7 @@ window.Lab = window.Lab || {};
 
     // ------------------------------------------------------------------ 3. HARDEN
     harden: {
-      brief: 'web01 is under a spoofed SYN flood right now. You are root on the server. Work through the checklist by typing real Linux commands in the terminal. Type `help` to see what the lab supports. When your changes are in place, test the server under the same attack you ran in the simulation.',
+      brief: 'web01 is under a spoofed SYN flood right now. You are root on the server. Work through the checklist by typing real Linux commands in the terminal pop-up (the Terminal button in the header). Type `help` to see what the lab supports. When your changes are in place, test the server under the same attack you ran in the simulation.',
       motd: [
         'web01 - Ubuntu 22.04 LTS (simulated)  |  you are root',
         'An attack is in progress on port 443. Type "help" for supported commands.',
@@ -517,6 +517,13 @@ window.Lab = window.Lab || {};
       q.answer = target;
     });
   }
+  var CMD = {
+    synCookies: 'sysctl -w net.ipv4.tcp_syncookies=1',
+    rateLimit: 'iptables -A INPUT -p tcp --syn --dport 443 -m limit --limit 400/s --limit-burst 800 -j ACCEPT\niptables -A INPUT -p tcp --syn --dport 443 -j DROP',
+    shortTimeout: 'sysctl -w net.ipv4.tcp_synack_retries=2',
+    firewall: 'sysctl -w net.netfilter.nf_conntrack_tcp_loose=0\niptables -t raw -A PREROUTING -p tcp -m tcp --syn --dport 443 -j CT --notrack\niptables -A INPUT -p tcp -m tcp --dport 443 -m conntrack --ctstate INVALID,UNTRACKED -j SYNPROXY --sack-perm --timestamp --wscale 7 --mss 1460'
+  };
+  Object.keys(CMD).forEach(function (k) { if (Lab.Content.mitigations[k]) Lab.Content.mitigations[k].command = CMD[k]; });
   var WK = Lab.Content.workshop;
   balance(WK.understand.checkpoints, 2);
   balance(WK.investigate.questions, 3);

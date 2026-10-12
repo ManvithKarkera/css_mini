@@ -93,3 +93,5 @@ After the simulation the student must complete five modules (`js/workshop.js`, t
 5. **Run the incident**: six on-call decisions with explained consequences.
 
 Tests: `node tests/shell.test.js` (shell and content checks). The quiz now has 12 questions. Ideas for the team: more commands (`awk`, `conntrack -L`), a second scenario (non-spoofed botnet), IPv6.
+
+**Terminal pop-up.** A header button (or Ctrl+`) opens a docked Linux terminal (`js/terminal.js`). It opens by itself at step 6. What you configure there (`sysctl`, `iptables`, `nft`) is evaluated into the four defences, and the switches in the Mitigation section follow it, so the terminal is the control panel for "Run With Mitigation".

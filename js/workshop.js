@@ -808,12 +808,12 @@ window.Lab = window.Lab || {};
   var done = {};                          // module id -> true
   var tasksDone = {};                     // harden task id -> true
   var testEngine = null;
+  var offTerminal = null;
   var testRunning = false;
   var finishedFired = false;
   var currentTab = 'understand';
   var incidentState = null;
   var scores = { incidentFirstTry: 0, incidentTotal: 0, layersFirstTry: 0, layersTotal: 0 };
-  var history = [], historyPos = 0;
 
   function el(tag, className, text) {
     var n = document.createElement(tag);
@@ -1077,28 +1077,12 @@ window.Lab = window.Lab || {};
     p.appendChild(inline(el('p'), H.brief));
 
     var lay = el('div', 'ws-harden');
-    // terminal
-    var termWrap = el('div', 'ws-term');
-    var bar = el('div', 'ws-term__bar'); bar.appendChild(el('span', null, 'root@web01 — simulated terminal')); termWrap.appendChild(bar);
-    var out = el('div', 'ws-term__out'); out.id = 'ws-term-output'; out.setAttribute('role', 'log'); out.setAttribute('aria-live', 'polite'); out.tabIndex = 0;
-    out.setAttribute('aria-label', 'Terminal output');
-    termWrap.appendChild(out);
-    var form = el('form', 'ws-term__form'); form.id = 'ws-term-form'; form.autocomplete = 'off';
-    var prompt = el('label', 'ws-term__prompt', 'root@web01:~#'); prompt.htmlFor = 'ws-term-input';
-    var input = el('input', 'ws-term__input'); input.id = 'ws-term-input'; input.type = 'text'; input.spellcheck = false;
-    input.setAttribute('autocapitalize', 'off'); input.setAttribute('autocorrect', 'off'); input.autocomplete = 'off';
-    input.setAttribute('aria-label', 'Type a Linux command');
-    form.appendChild(prompt); form.appendChild(input);
-    termWrap.appendChild(form);
-    var chips = el('div', 'ws-chips');
-    chips.appendChild(el('span', 'ws-chips__label', 'Try:'));
-    ['help', 'ss -tan state syn-recv | wc -l', 'dmesg | tail', 'sysctl -a | grep syn', 'iptables -S'].forEach(function (c) {
-      var b = el('button', 'chip', c); b.type = 'button';
-      b.addEventListener('click', function () { input.value = c; input.focus(); });
-      chips.appendChild(b);
-    });
-    termWrap.appendChild(chips);
-    lay.appendChild(termWrap);
+    var opener = el('div', 'ws-opener');
+    opener.appendChild(el('p', null, 'The terminal is a pop-up panel that is available throughout the lab. Open it, type real commands, and the checklist below ticks itself.'));
+    var ob = el('button', 'btn btn--primary', 'Open the terminal'); ob.type = 'button'; ob.id = 'btn-ws-open-terminal';
+    ob.addEventListener('click', function () { Lab.Terminal.open(true); });
+    opener.appendChild(ob);
+    lay.appendChild(opener);
 
     // checklist
     var side = el('div', 'ws-side');
@@ -1138,25 +1122,6 @@ window.Lab = window.Lab || {};
     renderBlocks(p, H.reference);
 
     // wiring
-    function print(text, cls) { var d = el('div', cls || 'ws-line'); d.textContent = text; out.appendChild(d); }
-    H.motd.forEach(function (l) { print(l, 'ws-line ws-line--dim'); });
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var cmd = input.value;
-      input.value = '';
-      if (cmd.trim()) { history.push(cmd); historyPos = history.length; }
-      print('root@web01:~# ' + cmd, 'ws-line ws-line--cmd');
-      var r = run(host, cmd);
-      if (r.clear) out.textContent = '';
-      r.lines.forEach(function (l) { print(l); });
-      out.scrollTop = out.scrollHeight;
-      updateTasks();
-    });
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowUp' && history.length) { e.preventDefault(); historyPos = Math.max(0, historyPos - 1); input.value = history[historyPos]; }
-      else if (e.key === 'ArrowDown' && history.length) { e.preventDefault(); historyPos = Math.min(history.length, historyPos + 1); input.value = history[historyPos] || ''; }
-    });
-    out.addEventListener('click', function () { var sel = window.getSelection && window.getSelection(); if (!sel || sel.isCollapsed) input.focus(); });
     tb.addEventListener('click', runHardeningTest);
     updateTasks();
   }
@@ -1312,6 +1277,7 @@ window.Lab = window.Lab || {};
       if (tab) { tab.setAttribute('aria-selected', on ? 'true' : 'false'); tab.tabIndex = on ? 0 : -1; }
       if (panel) panel.hidden = !on;
     });
+    if (id === 'harden' && Lab.Terminal && root && root.offsetParent !== null) Lab.Terminal.open(false);
     if (focus && $('ws-tab-' + id)) $('ws-tab-' + id).focus();
   }
 
@@ -1381,9 +1347,10 @@ window.Lab = window.Lab || {};
       W = Lab.Content.workshop;
       root = rootEl;
       opts = options || {};
-      host = createHost();
+      host = Lab.Terminal.getHost();
+      if (offTerminal) offTerminal();
+      offTerminal = Lab.Terminal.on(function () { updateTasks(); });
       done = {}; tasksDone = {}; finishedFired = false; testRunning = false;
-      history = []; historyPos = 0;
       scores = { incidentFirstTry: 0, incidentTotal: 0, layersFirstTry: 0, layersTotal: 0 };
       currentTab = 'understand';
       if (root) build();

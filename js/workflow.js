@@ -39,6 +39,8 @@ window.Lab = window.Lab || {};
   var workshop = { initialised: false, done: false, summary: null };
   var shownStep = 0;                     // the step the panel currently shows
   var pendingConfirm = null;
+  var terminalPopped = false;            // the terminal opens by itself once, when step 6 starts
+  var lastDefences = '';
 
   // ---- small helpers -------------------------------------------------------
   function $(id) { return document.getElementById(id); }
@@ -136,6 +138,7 @@ window.Lab = window.Lab || {};
       lim.appendChild(el('strong', null, 'Limitation: '));
       lim.appendChild(document.createTextNode(m.limitation));
       item.appendChild(lim);
+      if (m.command) { var cmd = el('pre', 'mitigation-command'); cmd.appendChild(el('code', null, m.command)); item.appendChild(cmd); }
     });
 
     // Step list titles.
@@ -209,6 +212,7 @@ window.Lab = window.Lab || {};
     if (started && cur >= 8 && !workshop.initialised) initWorkshop();
     show($('quiz'), started && cur >= 9);
     if (started && cur === 9 && !quiz.initialised) initQuiz();
+    if (started && cur >= 6 && !terminalPopped) { terminalPopped = true; Lab.Terminal.open(true); log('Terminal opened: configure the server\'s defences with Linux commands.', 'info'); }
     renderStepPanel();
     updateControls();
     if (moveFocus && cur !== shownStep) focusEl($('step-title'));
@@ -230,7 +234,7 @@ window.Lab = window.Lab || {};
     setDisabled('attack-level', !attackAllowed);
     setDisabled('btn-stop-sim', !running);
     setDisabled('btn-stop', !running);
-    Object.keys(MIT_INPUTS).forEach(function (id) { setDisabled(id, !mitigationAllowed); });
+    Object.keys(MIT_INPUTS).forEach(function (id) { setDisabled(id, true); });   // read-only: the terminal controls them
     setDisabled('btn-run-mitigated', !(mitigationAllowed && anyMitigationSelected()));
 
     var runBtn = $('btn-run-mitigated');
@@ -273,12 +277,26 @@ window.Lab = window.Lab || {};
     if (bar) bar.style.width = '0%';
   }
 
+  // The terminal is the control panel: whatever the Linux configuration enables is shown on the four switches.
+  function onTerminalCommand() {
+    var ev = Lab.Terminal.getDefences();
+    Object.keys(MIT_INPUTS).forEach(function (id) { var c = $(id); if (c) c.checked = !!ev.defences[MIT_INPUTS[id]]; });
+    var now = mitigationNames(ev.defences).join(', ');
+    if (now !== lastDefences) {
+      lastDefences = now;
+      log('Terminal: defences now active: ' + (now || 'none') + '.', 'info');
+      if (engine.isRunning()) notify('Defence changes apply to the next run.', 'info');
+    }
+    updateControls();
+  }
+
   // ---- journey actions -------------------------------------------------------
   function startLab() {
     started = true;
     show($('screen-guidelines'), false);
     LAB_SECTIONS.forEach(function (id) { show($(id), true); });
     show($('section-theory'), true);
+    show($('btn-terminal'), true);
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     setStatus(1, 'in-progress');
     shownStep = 0;
@@ -320,6 +338,7 @@ window.Lab = window.Lab || {};
     engine.setMitigation(NO_DEFENCES);
     currentRunKind = 'attack';
     clearVisuals();
+    Lab.Terminal.setLevel(level);
     engine.runAttack(level);
     // Step 3 (launch) is done the moment the flood starts; steps 4 and 5 follow its progress.
     completeStep(3);
@@ -337,6 +356,7 @@ window.Lab = window.Lab || {};
     currentRunKind = 'mitigated';
     clearVisuals();
     setStatus(6, 'in-progress');
+    Lab.Terminal.setLevel(level);
     engine.runAttack(level);
     refresh(false);
   }
@@ -502,6 +522,9 @@ window.Lab = window.Lab || {};
     Lab.Dashboard.reset();
     Lab.Log.clear();
     Lab.Quiz.reset();
+    Lab.Terminal.reset();
+    terminalPopped = false;
+    lastDefences = '';
     if (workshop.initialised) Lab.Workshop.reset();
     Object.keys(MIT_INPUTS).forEach(function (id) { var c = $(id); if (c) c.checked = false; });
     runs = { baseline: null, attack: null, mitigated: null };
@@ -516,6 +539,7 @@ window.Lab = window.Lab || {};
 
     if (toStart) {
       started = false;
+      show($('btn-terminal'), false);
       if ($('ack-checkbox')) $('ack-checkbox').checked = false;
       LAB_SECTIONS.concat(['section-theory', 'mitigation', 'comparison', 'workshop', 'quiz']).forEach(function (id) { show($(id), false); });
       show($('screen-guidelines'), true);
@@ -547,13 +571,7 @@ window.Lab = window.Lab || {};
     $('btn-stop').addEventListener('click', stopRun);
     $('btn-run-mitigated').addEventListener('click', startMitigated);
 
-    Object.keys(MIT_INPUTS).forEach(function (id) {
-      $(id).addEventListener('change', function (e) {
-        var m = C.mitigations[MIT_INPUTS[id]];
-        log('Mitigation ' + (e.target.checked ? 'enabled' : 'disabled') + ': ' + m.title + '.', 'info');
-        updateControls();
-      });
-    });
+    $('btn-open-terminal-mit').addEventListener('click', function () { Lab.Terminal.open(true); });
 
     $('btn-reset').addEventListener('click', function () { requestReset(false); });
     $('btn-restart').addEventListener('click', function () { requestReset(true); });
@@ -578,6 +596,8 @@ window.Lab = window.Lab || {};
     engine = Lab.Engine.create();
     Lab.Visuals.init(engine);
     Lab.Dashboard.init(engine);
+    Lab.Terminal.init();
+    Lab.Terminal.on(onTerminalCommand);
     renderContent();
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     wire();
