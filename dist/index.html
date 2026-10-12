@@ -23,8 +23,18 @@
 
   <!-- OWNER: Manvith (skeleton), Meet (text), Yash (styling) -->
   <section id="screen-guidelines" class="section guidelines" aria-labelledby="guidelines-heading">
+    <div class="hero">
+      <p class="hero__eyebrow">Interactive networking lab</p>
+      <p class="hero__title">See how a SYN flood takes a server offline, and how defences bring it back.</p>
+      <ul class="hero__facts">
+        <li><strong>8</strong> guided steps</li>
+        <li><strong>~15 min</strong> to complete</li>
+        <li><strong>100%</strong> simulated, nothing leaves your browser</li>
+      </ul>
+    </div>
     <h2 id="guidelines-heading" tabindex="-1">Before You Begin</h2>
     <p id="lab-objective"></p>
+    <p id="lab-disclaimer" class="disclaimer"></p>
     <ol id="guidelines-list"></ol>
     <label class="checkbox" for="ack-checkbox">
       <input type="checkbox" id="ack-checkbox">
@@ -37,7 +47,7 @@
   </section>
 
   <!-- OWNER: Meet (text), Pranav (handshake demo), Yash (styling) -->
-  <section id="section-theory" class="section theory" aria-labelledby="theory-heading">
+  <section id="section-theory" hidden class="section theory" aria-labelledby="theory-heading">
     <h2 id="theory-heading" tabindex="-1">Theory</h2>
     <div id="theory-content"></div>
     <div id="handshake-demo" aria-label="TCP three-way handshake demonstration"></div>
@@ -45,7 +55,7 @@
   </section>
 
   <!-- OWNER: Manvith (workflow), Yash (styling) -->
-  <section id="stepper-section" class="section" aria-labelledby="stepper-heading">
+  <section id="stepper-section" hidden class="section" aria-labelledby="stepper-heading">
     <h2 id="stepper-heading">Experiment Steps</h2>
     <div id="stepper" class="stepper">
       <ol id="step-list">
@@ -67,7 +77,7 @@
   </section>
 
   <!-- OWNER: Pranav (rendering), Sanika (styling) -->
-  <section id="topology" class="section topology" aria-labelledby="topology-heading">
+  <section id="topology" hidden class="section topology" aria-labelledby="topology-heading">
     <h2 id="topology-heading">Network Topology</h2>
     <div class="topology-scroll">
       <svg id="topology-svg" viewBox="0 0 800 360" role="img" aria-label="Network topology diagram"></svg>
@@ -76,7 +86,7 @@
   </section>
 
   <!-- OWNER: Manvith (wiring), Yash (styling) -->
-  <section id="controls" class="section" aria-labelledby="controls-heading">
+  <section id="controls" hidden class="section" aria-labelledby="controls-heading">
     <h2 id="controls-heading">Simulation Controls</h2>
     <div class="controls-row">
       <button type="button" id="btn-baseline" class="btn btn--primary">Generate Baseline Traffic</button>
@@ -89,10 +99,14 @@
       <button type="button" id="btn-start-flood" class="btn btn--danger">Start SYN Flood</button>
       <button type="button" id="btn-stop-sim" class="btn btn--ghost">Stop Simulation</button>
     </div>
+    <div id="run-status" class="run-status">
+      <span id="run-status-label" class="run-status__label">No simulation running</span>
+      <div class="progress run-status__progress"><div class="progress__bar"></div></div>
+    </div>
   </section>
 
   <!-- OWNER: Pranav (rendering), Sanika (styling) -->
-  <section id="dashboard" class="section" aria-labelledby="dashboard-heading">
+  <section id="dashboard" hidden class="section" aria-labelledby="dashboard-heading">
     <h2 id="dashboard-heading">Live Dashboard <span class="sim-badge">Simulated data</span></h2>
     <div id="server-state" class="server-badge server-badge--healthy">Healthy</div>
     <div id="notifications" aria-live="polite"></div>
@@ -139,7 +153,7 @@
   </section>
 
   <!-- OWNER: Manvith (wiring), Meet (text), Sanika (styling) -->
-  <section id="mitigation" class="section" aria-labelledby="mitigation-heading">
+  <section id="mitigation" hidden class="section" aria-labelledby="mitigation-heading">
     <h2 id="mitigation-heading">Mitigation</h2>
     <div class="mitigation-item">
       <input type="checkbox" id="mit-syn-cookies">
@@ -161,30 +175,35 @@
   </section>
 
   <!-- OWNER: Pranav (rendering), Sanika (styling) -->
-  <section id="comparison" class="section" aria-labelledby="comparison-heading">
+  <section id="comparison" hidden class="section" aria-labelledby="comparison-heading">
     <h2 id="comparison-heading">Comparison <span class="sim-badge">Simulated data</span></h2>
     <table id="compare-table" class="compare-table"></table>
     <p id="compare-explanation"></p>
   </section>
 
   <!-- OWNER: Manvith (logic), Meet (questions), Sanika (styling) -->
-  <section id="quiz" class="section" aria-labelledby="quiz-heading">
+  <section id="quiz" hidden class="section" aria-labelledby="quiz-heading">
     <h2 id="quiz-heading">Quiz</h2>
     <div id="quiz-container"></div>
     <p id="quiz-score" aria-live="polite"></p>
   </section>
 
   <!-- OWNER: Pranav (rendering), Sanika (styling) -->
-  <section id="log" class="section" aria-labelledby="log-heading">
+  <section id="log" hidden class="section" aria-labelledby="log-heading">
     <h2 id="log-heading">Experiment Log</h2>
     <ul id="log-list"></ul>
   </section>
 
 </main>
 
+<footer class="container lab-footer">
+  <p id="lab-footer-note"></p>
+</footer>
+
 <!-- OWNER: Manvith (logic), Yash (styling) -->
 <dialog id="modal-complete" class="modal" aria-labelledby="complete-heading">
   <h2 id="complete-heading">Experiment Completed Successfully!</h2>
+  <p id="complete-message"></p>
   <dl>
     <dt>Baseline availability</dt><dd id="complete-baseline"></dd>
     <dt>Availability under attack</dt><dd id="complete-attack"></dd>
