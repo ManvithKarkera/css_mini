@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SYN Flood Virtual Lab</title>
-  <!-- build.js replaces these two links with one link to style.css -->
+  <!-- build.js replaces these links with one link to style.css -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/lab.css">
+  <link rel="stylesheet" href="css/workshop.css">
 </head>
 <body>
 
@@ -69,6 +70,7 @@
         <li class="step step--locked" data-step="6" data-status="locked">Step 6</li>
         <li class="step step--locked" data-step="7" data-status="locked">Step 7</li>
         <li class="step step--locked" data-step="8" data-status="locked">Step 8</li>
+        <li class="step step--locked" data-step="9" data-status="locked">Step 9</li>
       </ol>
     </div>
     <div id="step-panel" class="card">
@@ -183,6 +185,13 @@
     <p id="compare-explanation"></p>
   </section>
 
+  <!-- OWNER: Manvith (logic), Meet (text), Sanika (styling). Part 2: built by the Workshop module from Lab.Content.workshop -->
+  <section id="workshop" hidden class="section workshop" aria-labelledby="workshop-heading">
+    <p class="workshop__eyebrow">Part 2</p>
+    <h2 id="workshop-heading" tabindex="-1">Defender's Workshop</h2>
+    <div id="workshop-content"></div>
+  </section>
+
   <!-- OWNER: Manvith (logic), Meet (questions), Sanika (styling) -->
   <section id="quiz" hidden class="section" aria-labelledby="quiz-heading">
     <h2 id="quiz-heading">Quiz</h2>
@@ -210,6 +219,7 @@
     <dt>Baseline availability</dt><dd id="complete-baseline"></dd>
     <dt>Availability under attack</dt><dd id="complete-attack"></dd>
     <dt>Availability with mitigation</dt><dd id="complete-mitigated"></dd>
+    <dt>Hardened server (workshop)</dt><dd id="complete-hardened"></dd>
     <dt>Quiz score</dt><dd id="complete-score"></dd>
     <dt>Status</dt><dd id="complete-status"></dd>
   </dl>
@@ -229,12 +239,14 @@
 
 <!-- build.js replaces these script tags with one <script src="script.js"> -->
 <script src="js/content.js"></script>
+<script src="js/workshop-content.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/mock-engine.js"></script>
 <script src="js/visuals.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/quiz.js"></script>
+<script src="js/workshop.js"></script>
 <script src="js/workflow.js"></script>
 </body>
 </html>

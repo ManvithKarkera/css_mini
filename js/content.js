@@ -21,7 +21,7 @@ window.Lab = window.Lab || {};
     guidelines: [
       'This lab is a browser-only simulation. No real network traffic is created and nothing leaves your computer.',
       'All numbers you see are simulated educational estimates, not measurements of a real system.',
-      'Work through the eight steps in order. A step unlocks when you finish the one before it.',
+      'Work through the nine steps in order. A step unlocks when you finish the one before it.',
       'Read the theory first. You can reopen it at any time with the Theory button in the header.',
       'Always run the baseline before the attack, so you have a healthy server to compare against.',
       'Use Stop to halt a simulation immediately. Your results stay on screen so you can study them.',
@@ -116,8 +116,13 @@ window.Lab = window.Lab || {};
       },
       {
         id: 8,
+        title: "Defender's workshop",
+        instructions: 'The simulation showed what happens. Now learn how a real defender finds and stops it. Work through the five modules below: understand the kernel mechanism, investigate evidence, harden a Linux server with real commands, choose the right defence layers and run the incident. Finish all five to unlock the quiz.'
+      },
+      {
+        id: 9,
         title: 'Test your knowledge',
-        instructions: 'Answer the six quiz questions. You get feedback after each answer. Finish the quiz to complete the experiment.'
+        instructions: 'Answer the twelve quiz questions. You get feedback after each answer. Finish the quiz to complete the experiment.'
       }
     ],
 

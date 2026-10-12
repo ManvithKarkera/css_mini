@@ -220,3 +220,7 @@ start with the `hidden` attribute; `workflow.js` reveals them as the student pro
 
 Engine additions: `Lab.Engine.DEFAULTS`, `engine._beginForTests(mode, level)` and `engine._stepForTests()` (test hooks),
 DEFAULTS `legitRetries`, `retryDelaySec`, `timeoutJitter`. Test hooks must never be used by the UI.
+
+### 5.10 Part 2 additions (workshop)
+New files: `js/workshop-content.js` (`Lab.Content.workshop`, appends 6 questions to `Lab.Content.quiz`), `js/workshop.js` (`Lab.Workshop`: `init(root, {getLevel,onFinished})`, `reset`, `isComplete`, `getSummary`, pure `shell`), `css/workshop.css`.
+Steps are now 9 (8 = workshop, 9 = quiz). New ids: `workshop`, `workshop-content`, `complete-hardened`, `workshop-finish`, `btn-ws-test`, `ws-term-input`. Load order: content, workshop-content, icons, engine, visuals, dashboard, quiz, workshop, workflow.
