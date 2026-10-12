@@ -107,7 +107,7 @@ window.Lab = window.Lab || {};
       {
         id: 6,
         title: 'Enable mitigation',
-        instructions: 'Switch on one or more defences, then press Run With Mitigation. The same attack level is replayed against the protected server. Read each defence\'s explanation and its limitation as you decide.'
+        instructions: 'Open the terminal (Terminal button, top right). You are root on the simulated server web01: configure real defences with Linux commands such as sysctl and iptables. Type help to see what is supported. The switches below show which defences your configuration turns on. When at least one is on, press Run With Mitigation to replay the same attack against your configuration.'
       },
       {
         id: 7,

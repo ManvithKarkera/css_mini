@@ -79,15 +79,29 @@
     check(!$('mitigation').hidden && $('comparison').hidden, 'stop: mitigation section is visible, comparison not yet');
     check(/Attack run recorded/.test(logText()), 'stop: attack run logged');
 
-    // ---- step 6: mitigation
+    // ---- step 6: mitigation, controlled from the terminal pop-up
+    function type(cmd) {
+      $('ws-term-input').value = cmd;
+      $('ws-term-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+    function term() { return $('ws-term-output').textContent; }
+    check(!$('terminal-drawer').hidden && !$('btn-terminal').hidden, 'terminal: pops up by itself when step 6 starts');
     check($('btn-run-mitigated').disabled, 'mitigation: Run With Mitigation needs at least one defence');
-    check(!$('mit-syn-cookies').disabled, 'mitigation: switches are enabled while stopped');
-    $('mit-syn-cookies').click(); $('mit-short-timeout').click();
+    check($('mit-syn-cookies').disabled && $('mit-rate-limit').disabled, 'mitigation: switches are read-only (the terminal controls them)');
+    type('help');
+    check(/Supported commands/.test(term()), 'terminal: help lists the supported commands');
+    type('sysctl -w net.ipv4.tcp_syncookies=1');
+    check($('mit-syn-cookies').checked && !$('mit-short-timeout').checked, 'terminal: enabling cookies turns the SYN cookies switch on');
     check(!$('btn-run-mitigated').disabled, 'mitigation: enabled once a defence is on');
-    check(/Mitigation enabled: SYN cookies/.test(logText()), 'mitigation: enabling is logged');
+    type('sysctl -w net.ipv4.tcp_synack_retries=2');
+    check($('mit-short-timeout').checked, 'terminal: shorter SYN-ACK retries turns the shorter timeouts switch on');
+    check(/defences now active: SYN cookies, Shorter timeouts/.test(logText()), 'mitigation: terminal changes are logged');
+    $('btn-terminal').click();
+    check($('terminal-drawer').hidden, 'terminal: header button closes it');
+    $('btn-terminal').click();
+    check(!$('terminal-drawer').hidden, 'terminal: header button opens it again');
     $('btn-run-mitigated').click();
-    check(engine.isRunning() && engine.getState().level === 'medium' && engine.getState().mitigation.synCookies, 'mitigation: same level replayed with the defences');
-    check($('mit-syn-cookies').disabled, 'mitigation: switches locked while running');
+    check(engine.isRunning() && engine.getState().level === 'medium' && engine.getState().mitigation.synCookies && engine.getState().mitigation.shortTimeout, 'mitigation: same level replayed with the terminal-configured defences');
     await sleep(21500);
     check(!engine.isRunning() && engine.getSummary().mitigation.synCookies, 'mitigation: run finished');
     check(statuses().indexOf('completed,completed,completed,completed,completed,completed,in-progress') === 0, 'mitigation: step 6 done, step 7 in progress (' + statuses() + ')');
@@ -132,22 +146,19 @@
     check($('workshop-progress').textContent === '2 of 5 modules complete', 'investigate: module completes');
     // 3 harden: the terminal
     $('ws-tab-harden').click();
-    function type(cmd) {
-      $('ws-term-input').value = cmd;
-      $('ws-term-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    }
-    function term() { return $('ws-term-output').textContent; }
     function doneTasks() { return Array.prototype.filter.call(document.querySelectorAll('#ws-tasks .ws-task'), function (li) { return li.dataset.done === 'true'; }).length; }
-    check(/Type "help"/.test(term()) && document.querySelectorAll('#ws-tasks .ws-task').length === W.harden.tasks.length, 'harden: terminal and checklist are shown');
+    check(/Type "help"|type "help"/i.test(term()) && !$('terminal-drawer').hidden && document.querySelectorAll('#ws-tasks .ws-task').length === W.harden.tasks.length, 'harden: terminal and checklist are shown');
+    check(doneTasks() === 2, 'harden: cookies and retries set in step 6 are already ticked (' + doneTasks() + ')');
+    type('sysctl -w net.ipv4.tcp_syncookies=0'); type('sysctl -w net.ipv4.tcp_synack_retries=5');
     $('btn-ws-test').click();
     await sleep(2500);
-    check(!$('ws-test-result').hidden && $('ws-test-result').classList.contains('is-fail'), 'harden: testing the untouched server fails (' + $('ws-test-result').className + ')');
+    check(!$('ws-test-result').hidden && $('ws-test-result').classList.contains('is-fail'), 'harden: testing the weakened server fails (' + $('ws-test-result').className + ')');
     check($('workshop-progress').textContent === '2 of 5 modules complete', 'harden: failing test does not complete the module');
     type('ss -tan state syn-recv | wc -l');
     check(/\n?257\s*$/.test(term().trim()) || term().indexOf('257') > 0, 'harden: ss | wc -l prints the half-open count');
     type('dmesg | tail'); type("tcpdump -nn -c 5 'tcp[tcpflags] == tcp-syn'");
     check(/Possible SYN flooding/.test(term()) && /Flags \[S\]/.test(term()), 'harden: dmesg and tcpdump output are shown');
-    check(doneTasks() === 3, 'harden: three measuring tasks ticked (' + doneTasks() + ')');
+    check(doneTasks() === 5, 'harden: measuring tasks ticked (' + doneTasks() + ')');
     type('sysctl -w net.ipv4.tcp_syncookies=1');
     type('frobnicate');
     check(/command not found/.test(term()), 'harden: unknown commands are explained');

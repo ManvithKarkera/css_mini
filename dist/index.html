@@ -13,6 +13,7 @@
   <h1>SYN Flood Virtual Lab</h1>
   <div class="header-actions">
     <button type="button" id="btn-theory" class="btn btn--ghost">Theory</button>
+    <button type="button" id="btn-terminal" class="btn btn--ghost" hidden aria-expanded="false" aria-controls="terminal-drawer">Terminal</button>
     <button type="button" id="btn-stop" class="btn btn--danger">Stop</button>
     <button type="button" id="btn-reset" class="btn btn--ghost">Reset</button>
     <button type="button" id="btn-restart" class="btn btn--ghost">Restart Lab</button>
@@ -156,6 +157,7 @@
   <!-- OWNER: Manvith (wiring), Meet (text), Sanika (styling) -->
   <section id="mitigation" hidden class="section" aria-labelledby="mitigation-heading">
     <h2 id="mitigation-heading">Mitigation</h2>
+    <p class="mitigation-note">These switches are controlled by the terminal: your Linux configuration turns them on. <button type="button" id="btn-open-terminal-mit" class="btn btn--ghost btn--sm">Open the terminal</button></p>
     <div class="mitigation-item">
       <input type="checkbox" id="mit-syn-cookies">
       <label for="mit-syn-cookies">SYN cookies</label>
@@ -209,6 +211,24 @@
 </footer>
 
 <!-- OWNER: Manvith (logic), Yash (styling) -->
+<!-- Terminal pop-up: built and wired by the Terminal module -->
+<section id="terminal-drawer" class="term-drawer" hidden role="dialog" aria-modal="false" aria-label="Simulated Linux terminal">
+  <div class="term-drawer__bar">
+    <span class="term-drawer__title"><span class="term-drawer__dot" aria-hidden="true"></span>root@web01 — simulated terminal</span>
+    <span class="term-drawer__actions">
+      <button type="button" id="btn-term-size" class="term-drawer__btn" aria-label="Make the terminal taller">&#x2195; Resize</button>
+      <button type="button" id="btn-term-clear" class="term-drawer__btn" aria-label="Clear the terminal">Clear</button>
+      <button type="button" id="btn-term-close" class="term-drawer__btn" aria-label="Close the terminal">Close &#x2715;</button>
+    </span>
+  </div>
+  <div id="ws-term-output" class="ws-term__out" role="log" aria-live="polite" aria-label="Terminal output" tabindex="0"></div>
+  <form id="ws-term-form" class="ws-term__form" autocomplete="off">
+    <label class="ws-term__prompt" for="ws-term-input">root@web01:~#</label>
+    <input id="ws-term-input" class="ws-term__input" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Type a Linux command">
+  </form>
+  <div id="term-chips" class="ws-chips"></div>
+</section>
+
 <dialog id="modal-complete" class="modal" aria-labelledby="complete-heading">
   <h2 id="complete-heading">Experiment Completed Successfully!</h2>
   <p id="complete-message"></p>
