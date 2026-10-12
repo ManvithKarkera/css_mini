@@ -31,12 +31,12 @@
     // ---- step 1
     $('btn-start').click();
     check($('screen-guidelines').hidden && !$('stepper-section').hidden, 'step 1: Start hides the guidelines and shows the lab');
-    check(statuses() === 'in-progress,locked,locked,locked,locked,locked,locked,locked', 'step 1: stepper statuses (' + statuses() + ')');
+    check(statuses() === 'in-progress,locked,locked,locked,locked,locked,locked,locked,locked', 'step 1: stepper statuses (' + statuses() + ')');
     check(!$('section-theory').hidden && $('theory-content').textContent.length > 500, 'step 1: theory is shown and filled');
     check($('btn-baseline').disabled && $('btn-start-flood').disabled && $('btn-stop').disabled, 'step 1: baseline, flood and stop are disabled');
     check(/Review the lab/.test($('step-title').textContent), 'step 1: step panel shows the step');
     continueBtn().click();
-    check(statuses() === 'completed,ready,locked,locked,locked,locked,locked,locked', 'step 2 unlocked after Continue (' + statuses() + ')');
+    check(statuses() === 'completed,ready,locked,locked,locked,locked,locked,locked,locked', 'step 2 unlocked after Continue (' + statuses() + ')');
     check(!$('btn-baseline').disabled && $('btn-start-flood').disabled, 'step 2: baseline enabled, flood still locked');
 
     // ---- step 2: baseline
@@ -101,9 +101,99 @@
     check(!$('modal-complete').open, 'comparison: completion popup is NOT shown early');
     continueBtn().click();
 
-    // ---- step 8: quiz
-    check(!$('quiz').hidden, 'quiz: visible at step 8');
-    check(/Question 1 of 6/.test($('quiz-container').textContent), 'quiz: progress label "Question 1 of 6"');
+    // ---- step 8: defender's workshop (Part 2)
+    check(!$('workshop').hidden && $('quiz').hidden, 'workshop: shown at step 8, quiz still hidden');
+    check(statuses() === 'completed,completed,completed,completed,completed,completed,completed,in-progress,locked', 'workshop: step 8 in progress (' + statuses() + ')');
+    check(document.querySelectorAll('#workshop-tabs [role=tab]').length === 5 && $('workshop-progress').textContent === '0 of 5 modules complete', 'workshop: five modules, none complete');
+    check(!$('workshop-finish') || $('workshop-finish').hidden, 'workshop: finish button hidden until all modules are done');
+    var W = Lab.Content.workshop;
+    function answerQuestions(panelId, qs, wrongFirst) {
+      var cards = $(panelId).querySelectorAll('.ws-q');
+      qs.forEach(function (q, i) {
+        var opts = cards[i].querySelectorAll('.quiz-option');
+        if (wrongFirst && i === 0) { opts[(q.answer + 1) % 4].click(); check(opts[(q.answer + 1) % 4].classList.contains('is-wrong') && /Not quite/.test(cards[i].querySelector('.ws-feedback').textContent), panelId + ': a wrong answer is marked and explained'); }
+        opts[q.answer].click();
+      });
+    }
+    // 1 understand
+    $('ws-tab-understand').click();
+    check(!$('ws-panel-understand').hidden && $('ws-panel-harden').hidden, 'workshop: tabs switch panels');
+    check($('ws-panel-understand').textContent.indexOf('SYN queue') > 0 && $('ws-panel-understand').querySelectorAll('table').length >= 2, 'understand: kernel explanation and tables are rendered');
+    $('ws-calc-input').value = '3'; $('ws-calc-check').click();
+    check(/15 s/.test($('ws-calc-feedback').textContent) && $('workshop-progress').textContent.indexOf('0 of 5') === 0, 'understand: wrong calculator answer shows the arithmetic');
+    $('ws-calc-input').value = String(W.understand.calculator.answer); $('ws-calc-check').click();
+    check(/Correct/.test($('ws-calc-feedback').textContent), 'understand: right calculator answer accepted');
+    answerQuestions('ws-panel-understand', W.understand.checkpoints, true);
+    check($('workshop-progress').textContent === '1 of 5 modules complete', 'understand: module completes (' + $('workshop-progress').textContent + ')');
+    // 2 investigate
+    $('ws-tab-investigate').click();
+    check($('ws-panel-investigate').querySelectorAll('.ws-evidence__card').length === 4, 'investigate: four pieces of evidence are shown');
+    answerQuestions('ws-panel-investigate', W.investigate.questions, false);
+    check($('workshop-progress').textContent === '2 of 5 modules complete', 'investigate: module completes');
+    // 3 harden: the terminal
+    $('ws-tab-harden').click();
+    function type(cmd) {
+      $('ws-term-input').value = cmd;
+      $('ws-term-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+    function term() { return $('ws-term-output').textContent; }
+    function doneTasks() { return Array.prototype.filter.call(document.querySelectorAll('#ws-tasks .ws-task'), function (li) { return li.dataset.done === 'true'; }).length; }
+    check(/Type "help"/.test(term()) && document.querySelectorAll('#ws-tasks .ws-task').length === W.harden.tasks.length, 'harden: terminal and checklist are shown');
+    $('btn-ws-test').click();
+    await sleep(2500);
+    check(!$('ws-test-result').hidden && $('ws-test-result').classList.contains('is-fail'), 'harden: testing the untouched server fails (' + $('ws-test-result').className + ')');
+    check($('workshop-progress').textContent === '2 of 5 modules complete', 'harden: failing test does not complete the module');
+    type('ss -tan state syn-recv | wc -l');
+    check(/\n?257\s*$/.test(term().trim()) || term().indexOf('257') > 0, 'harden: ss | wc -l prints the half-open count');
+    type('dmesg | tail'); type("tcpdump -nn -c 5 'tcp[tcpflags] == tcp-syn'");
+    check(/Possible SYN flooding/.test(term()) && /Flags \[S\]/.test(term()), 'harden: dmesg and tcpdump output are shown');
+    check(doneTasks() === 3, 'harden: three measuring tasks ticked (' + doneTasks() + ')');
+    type('sysctl -w net.ipv4.tcp_syncookies=1');
+    type('frobnicate');
+    check(/command not found/.test(term()), 'harden: unknown commands are explained');
+    type('sysctl -w net.ipv4.tcp_synack_retries=2');
+    type('iptables -A INPUT -p tcp --syn --dport 443 -m limit --limit 400/s --limit-burst 800 -j ACCEPT');
+    type('iptables -A INPUT -p tcp --syn --dport 443 -j DROP');
+    check(doneTasks() === 6, 'harden: runtime changes tick six tasks (' + doneTasks() + ')');
+    type('echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/99-synflood.conf');
+    type('echo "net.ipv4.tcp_synack_retries = 2" >> /etc/sysctl.d/99-synflood.conf');
+    check($('ws-task-persist').dataset.done === 'false', 'harden: a file that is not loaded does not count as persisted');
+    type('sysctl --system');
+    check($('ws-task-persist').dataset.done === 'true' && doneTasks() === 7, 'harden: persisting and loading the file ticks the task (' + doneTasks() + ')');
+    $('ws-term-input').value = 'help'; $('ws-term-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    $('btn-ws-test').click();
+    check($('btn-ws-test').disabled, 'harden: test button is disabled while the replay runs');
+    await sleep(2500);
+    check($('ws-test-result').classList.contains('is-pass') || $('ws-test-result').classList.contains('is-excellent'), 'harden: hardened server passes the test (' + $('ws-test-result').className + ')');
+    check(/Excellent|Pass/.test($('ws-test-result').textContent) && /%/.test($('ws-test-result').textContent), 'harden: result card shows before/after numbers');
+    check($('workshop-progress').textContent === '3 of 5 modules complete', 'harden: module completes (' + $('workshop-progress').textContent + ')');
+    // 4 layers
+    $('ws-tab-layers').click();
+    W.layers.exercises.forEach(function (ex, i) {
+      var sel = $('ws-match-' + ex.id);
+      if (i === 0) { sel.value = ex.answer === 'host' ? 'isp' : 'host'; sel.dispatchEvent(new Event('change')); }
+      sel.value = ex.answer; sel.dispatchEvent(new Event('change'));
+    });
+    check($('workshop-progress').textContent === '4 of 5 modules complete', 'layers: module completes');
+    // 5 incident
+    $('ws-tab-incident').click();
+    W.incident.steps.forEach(function (st, i) {
+      var opts = $('ws-incident').querySelectorAll('.quiz-option');
+      var goodIdx = st.options.findIndex(function (o) { return o.good; });
+      if (i === 0) { opts[(goodIdx + 1) % 4].click(); }
+      opts[goodIdx].click();
+      $('ws-incident-next').click();
+    });
+    check(/Incident closed/.test($('ws-incident').textContent), 'incident: the six decisions end with a debrief');
+    check($('workshop-progress').textContent === '5 of 5 modules complete' && !$('workshop-finish').hidden, 'workshop: all modules complete, finish button shown');
+    check($('quiz').hidden, 'workshop: quiz still hidden until the workshop is finished');
+    $('workshop-finish').click();
+    check(statuses() === 'completed,completed,completed,completed,completed,completed,completed,completed,in-progress', 'workshop: step 8 completed, step 9 in progress (' + statuses() + ')');
+    check(/Workshop completed/.test(logText()), 'workshop: completion logged');
+
+    // ---- step 9: quiz
+    check(!$('quiz').hidden, 'quiz: visible at step 9');
+    check(/Question 1 of 12/.test($('quiz-container').textContent), 'quiz: progress label "Question 1 of 12"');
     var qs = Lab.Content.quiz;
     for (var i = 0; i < qs.length; i++) {
       var q = qs[i];
@@ -123,13 +213,13 @@
       var next = $('quiz-container').querySelector('.quiz-actions .btn--primary:not([hidden])');
       next.click();
     }
-    check(/5 \/ 6/.test($('quiz-score').textContent), 'quiz: final score shown (' + $('quiz-score').textContent + ')');
+    check(/11 \/ 12/.test($('quiz-score').textContent), 'quiz: final score shown (' + $('quiz-score').textContent + ')');
 
     // ---- completion
     check($('modal-complete').open, 'completion: popup opens after everything is done');
     check(/%/.test($('complete-baseline').textContent) && /%/.test($('complete-attack').textContent) && /%/.test($('complete-mitigated').textContent), 'completion: three availability values');
-    check($('complete-score').textContent === '5 / 6' && $('complete-status').textContent === 'Passed', 'completion: score and status');
-    check(statuses() === 'completed,completed,completed,completed,completed,completed,completed,completed', 'completion: every step completed');
+    check($('complete-score').textContent === '11 / 12' && /%/.test($('complete-hardened').textContent) && $('complete-status').textContent === 'Passed', 'completion: score and status');
+    check(statuses() === 'completed,completed,completed,completed,completed,completed,completed,completed,completed', 'completion: every step completed');
     $('btn-review').click();
     check(!$('modal-complete').open, 'completion: Review closes the popup');
 
@@ -141,11 +231,11 @@
     $('btn-reset').click();
     $('btn-confirm-yes').click();
     check(!engine.isRunning() && engine.getState().history.length === 0 && engine.getSummary() === null, 'reset: engine cleared');
-    check(statuses() === 'in-progress,locked,locked,locked,locked,locked,locked,locked', 'reset: back to step 1 (' + statuses() + ')');
+    check(statuses() === 'in-progress,locked,locked,locked,locked,locked,locked,locked,locked', 'reset: back to step 1 (' + statuses() + ')');
     check(!$('mit-syn-cookies').checked && $('compare-table').children.length === 0, 'reset: mitigations unchecked and comparison cleared');
     check($('screen-guidelines').hidden && !$('stepper-section').hidden, 'reset: guidelines stay acknowledged');
     check($('log-list').children.length === 1, 'reset: log cleared (' + $('log-list').children.length + ' entry)');
-    check($('quiz').hidden && $('mitigation').hidden && $('comparison').hidden, 'reset: later sections hidden again');
+    check($('quiz').hidden && $('mitigation').hidden && $('comparison').hidden && $('workshop').hidden, 'reset: later sections hidden again');
 
     // robustness: rapid Start / Stop / Reset never throws or double-runs
     continueBtn().click(); $('btn-baseline').click(); $('btn-stop').click(); $('btn-stop').click(); $('btn-baseline').click();

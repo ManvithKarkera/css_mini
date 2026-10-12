@@ -32,7 +32,7 @@ check(!loadError, 'dist/script.js loads without throwing' + (loadError ? ': ' + 
 const Lab = win.Lab || {};
 const api = {
   Engine: ['create'], Visuals: ['init', 'playHandshakeDemo', 'reset'],
-  Dashboard: ['init', 'notify', 'renderComparison', 'reset'], Log: ['add', 'clear'], Quiz: ['init', 'reset']
+  Dashboard: ['init', 'notify', 'renderComparison', 'reset'], Log: ['add', 'clear'], Quiz: ['init', 'reset'], Workshop: ['init', 'reset', 'getSummary', 'isComplete']
 };
 for (const [ns, fns] of Object.entries(api)) {
   check(Lab[ns] && fns.every((f) => typeof Lab[ns][f] === 'function'), `Lab.${ns} exposes ${fns.join(', ')}`);
@@ -41,10 +41,11 @@ const engine = Lab.Engine.create();
 const engineApi = ['runBaseline', 'runAttack', 'stop', 'reset', 'setMitigation', 'isRunning', 'getState', 'getSummary', 'on'];
 check(engineApi.every((f) => typeof engine[f] === 'function'), 'stub engine has every §5.2 method');
 check(typeof engine.on('tick', () => {}) === 'function', 'engine.on returns an unsubscribe function');
+check(!!Lab.Content.workshop && Lab.Content.workshop.modules.length === 5, 'Lab.Content.workshop defines the five modules');
 check(['title', 'objective', 'disclaimer', 'guidelines', 'theory', 'components', 'steps', 'serverStates', 'mitigations', 'quiz', 'completion']
   .every((k) => k in Lab.Content), 'Lab.Content has every §5.7 key');
-check(Lab.Content.guidelines.length === 9 && Lab.Content.steps.length === 8 && Lab.Content.quiz.length === 6,
-  'Lab.Content has 9 guidelines, 8 steps, 6 quiz questions');
+check(Lab.Content.guidelines.length === 9 && Lab.Content.steps.length === 9 && Lab.Content.quiz.length === 12,
+  'Lab.Content has 9 guidelines, 9 steps, 12 quiz questions');
 check(['client', 'generator', 'server', 'queue', 'status', 'shield'].every((k) => k in Lab.Icons), 'Lab.Icons has every key');
 check(listeners.length === 1 && listeners[0][0] === 'DOMContentLoaded', 'only workflow.js registers a DOMContentLoaded listener');
 // (workflow.js needs a real DOM: it is exercised end to end by tests/e2e.js)
@@ -57,7 +58,7 @@ const ids = ['lab-header', 'btn-theory', 'btn-stop', 'btn-reset', 'btn-restart',
   'topology-svg', 'component-info', 'btn-baseline', 'attack-level', 'btn-start-flood', 'btn-stop-sim', 'dashboard',
   'server-state', 'notifications', 'chart-history', 'mitigation', 'mit-syn-cookies', 'mit-rate-limit', 'mit-short-timeout',
   'mit-firewall', 'btn-run-mitigated', 'comparison', 'compare-table', 'compare-explanation', 'quiz', 'quiz-container',
-  'quiz-score', 'log', 'log-list', 'modal-complete', 'complete-baseline', 'complete-attack', 'complete-mitigated',
+  'quiz-score', 'workshop', 'workshop-content', 'complete-hardened', 'log', 'log-list', 'modal-complete', 'complete-baseline', 'complete-attack', 'complete-mitigated',
   'complete-score', 'complete-status', 'btn-review', 'btn-restart-lab', 'modal-confirm', 'confirm-message',
   'btn-confirm-yes', 'btn-confirm-no'];
 const count = (id) => (html.match(new RegExp(`\\sid="${id}"`, 'g')) || []).length;

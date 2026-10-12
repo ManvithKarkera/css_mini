@@ -18,7 +18,7 @@ window.Lab = window.Lab || {};
 (function (Lab) {
   'use strict';
 
-  var STEP_COUNT = 8;
+  var STEP_COUNT = 9;
   var NO_DEFENCES = { synCookies: false, rateLimit: false, shortTimeout: false, firewall: false };
   var MIT_INPUTS = {                     // checkbox id -> key in engine.setMitigation / Lab.Content.mitigations
     'mit-syn-cookies': 'synCookies',
@@ -36,6 +36,7 @@ window.Lab = window.Lab || {};
   var runs = { baseline: null, attack: null, mitigated: null };
   var currentRunKind = null;             // 'baseline' | 'attack' | 'mitigated' while a run is active
   var quiz = { initialised: false, done: false, score: 0, total: 0 };
+  var workshop = { initialised: false, done: false, summary: null };
   var shownStep = 0;                     // the step the panel currently shows
   var pendingConfirm = null;
 
@@ -74,7 +75,7 @@ window.Lab = window.Lab || {};
   function resultsExist() {
     if (!started) return false;
     return !!(runs.baseline || runs.attack || runs.mitigated || engine.isRunning() ||
-      engine.getState().history.length || quiz.initialised);
+      engine.getState().history.length || quiz.initialised || workshop.initialised);
   }
 
   // ---- rendering Lab.Content -----------------------------------------------
@@ -172,7 +173,7 @@ window.Lab = window.Lab || {};
     setStatus(n, 'completed');
     // unlock the following step: steps that need a button press are "ready", reading steps are "in progress"
     var next = n + 1;
-    if (next <= STEP_COUNT && status[next - 1] === 'locked') setStatus(next, (next === 7 || next === 8) ? 'in-progress' : 'ready');
+    if (next <= STEP_COUNT && status[next - 1] === 'locked') setStatus(next, next >= 7 ? 'in-progress' : 'ready');
   }
 
   function renderStepPanel() {
@@ -204,8 +205,10 @@ window.Lab = window.Lab || {};
     var cur = currentStep();
     show($('mitigation'), started && cur >= 6);
     show($('comparison'), started && cur >= 7 && !!runs.mitigated);
-    show($('quiz'), started && cur >= 8);
-    if (started && cur === 8 && !quiz.initialised) initQuiz();
+    show($('workshop'), started && cur >= 8);
+    if (started && cur >= 8 && !workshop.initialised) initWorkshop();
+    show($('quiz'), started && cur >= 9);
+    if (started && cur === 9 && !quiz.initialised) initQuiz();
     renderStepPanel();
     updateControls();
     if (moveFocus && cur !== shownStep) focusEl($('step-title'));
@@ -296,7 +299,7 @@ window.Lab = window.Lab || {};
   function finishStep7() {
     completeStep(7);
     refresh(true);
-    scrollToEl($('quiz'));
+    scrollToEl($('workshop'));
   }
 
   function clearVisuals() { Lab.Visuals.reset(); Lab.Dashboard.reset(); }
@@ -393,9 +396,27 @@ window.Lab = window.Lab || {};
   }
 
   // ---- quiz and completion -----------------------------------------------------
+  function initWorkshop() {
+    workshop.initialised = true;
+    Lab.Workshop.init($('workshop-content'), {
+      getLevel: function () { return runs.attack ? runs.attack.level : 'medium'; },
+      onFinished: onWorkshopFinished
+    });
+  }
+
+  function onWorkshopFinished(summary) {
+    workshop.done = true;
+    workshop.summary = summary;
+    var h = summary.hardening;
+    log('Workshop completed' + (h ? ': hardened server ' + Math.round(h.after) + '% available (' + h.state + ') against ' + h.level + ' attack' : '') + '.', 'success');
+    completeStep(8);
+    refresh(true);
+    scrollToEl($('quiz'));
+  }
+
   function initQuiz() {
     quiz.initialised = true;
-    setStatus(8, 'in-progress');
+    setStatus(9, 'in-progress');
     Lab.Quiz.init($('quiz-container'), C.quiz, onQuizFinished);
   }
 
@@ -404,12 +425,12 @@ window.Lab = window.Lab || {};
     quiz.score = result.score;
     quiz.total = result.total;
     log('Quiz finished: ' + result.score + ' / ' + result.total + '.', 'success');
-    completeStep(8);
+    completeStep(9);
     refresh(false);
   }
 
   function maybeComplete() {
-    if (!(runs.baseline && runs.attack && runs.mitigated && status[6] === 'completed' && quiz.done)) return;
+    if (!(runs.baseline && runs.attack && runs.mitigated && status[6] === 'completed' && workshop.done && quiz.done)) return;
     var dlg = $('modal-complete');
     if (!dlg || dlg.open) return;
     var pct = (n) => (n === null || n === undefined ? '—' : Math.round(n) + '%');
@@ -417,6 +438,8 @@ window.Lab = window.Lab || {};
     $('complete-baseline').textContent = pct(runs.baseline.avgAvailability);
     $('complete-attack').textContent = pct(runs.attack.avgAvailability);
     $('complete-mitigated').textContent = pct(runs.mitigated.avgAvailability);
+    var hs = workshop.summary && workshop.summary.hardening;
+    $('complete-hardened').textContent = hs ? Math.round(hs.after) + '% available, ' + hs.state + ' (was ' + Math.round(hs.before) + '%)' : '—';
     $('complete-score').textContent = quiz.score + ' / ' + quiz.total;
     var passed = quiz.total && quiz.score / quiz.total * 100 >= PASS_PERCENT;
     $('complete-status').textContent = passed ? 'Passed' : 'Completed — review recommended';
@@ -479,9 +502,11 @@ window.Lab = window.Lab || {};
     Lab.Dashboard.reset();
     Lab.Log.clear();
     Lab.Quiz.reset();
+    if (workshop.initialised) Lab.Workshop.reset();
     Object.keys(MIT_INPUTS).forEach(function (id) { var c = $(id); if (c) c.checked = false; });
     runs = { baseline: null, attack: null, mitigated: null };
     quiz = { initialised: false, done: false, score: 0, total: 0 };
+    workshop = { initialised: false, done: false, summary: null };
     currentRunKind = null;
     pendingConfirm = null;
     if ($('attack-level')) $('attack-level').value = 'medium';
@@ -492,7 +517,7 @@ window.Lab = window.Lab || {};
     if (toStart) {
       started = false;
       if ($('ack-checkbox')) $('ack-checkbox').checked = false;
-      LAB_SECTIONS.concat(['section-theory', 'mitigation', 'comparison', 'quiz']).forEach(function (id) { show($(id), false); });
+      LAB_SECTIONS.concat(['section-theory', 'mitigation', 'comparison', 'workshop', 'quiz']).forEach(function (id) { show($(id), false); });
       show($('screen-guidelines'), true);
       refresh(false);
       window.scrollTo(0, 0);

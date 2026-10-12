@@ -1,6 +1,6 @@
 # SYN Flood Virtual Lab
 
-A browser-only educational simulation. A student works through eight guided steps and watches a **simulated** server lose
+A browser-only educational simulation. A student works through nine guided steps and watches a **simulated** server lose
 availability as its TCP connection queue fills during a SYN flood, then recover when defences are switched on.
 Plain HTML, CSS and JavaScript: no backend, no libraries, **no real network traffic**. All numbers are simulated
 educational estimates.
@@ -80,3 +80,16 @@ flood traffic against a network you do not own or have written permission to tes
 - RFC 4987, *TCP SYN Flooding Attacks and Common Mitigations*
 - D. J. Bernstein, *SYN cookies*
 - H. Wang, D. Zhang and K. G. Shin, *Detecting SYN Flooding Attacks*, IEEE INFOCOM 2002
+
+
+## Part 2: Defender's Workshop (step 8)
+
+After the simulation the student must complete five modules (`js/workshop.js`, text in `js/workshop-content.js`, styles in `css/workshop.css`):
+
+1. **Understand**: SYN queue vs accept queue, SYN cookies, Little's law, a numeric exercise, attack-type table.
+2. **Investigate**: monitoring, `dmesg`, `ss` and tcpdump evidence; diagnose a spoofed SYN flood.
+3. **Harden**: a simulated Linux terminal that accepts real `sysctl`, `ss`, `netstat`, `dmesg`, `tcpdump`, `iptables`, `nft`, `ipset` commands, plus a checklist and a test that replays the attack against the student's configuration using the same engine.
+4. **Choose layers**: match situations to host tuning, firewall, proxy, scrubbing, ISP/BCP 38.
+5. **Run the incident**: six on-call decisions with explained consequences.
+
+Tests: `node tests/shell.test.js` (shell and content checks). The quiz now has 12 questions. Ideas for the team: more commands (`awk`, `conntrack -L`), a second scenario (non-spoofed botnet), IPv6.

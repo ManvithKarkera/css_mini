@@ -192,7 +192,7 @@ main.container {
 }
 main.container > .section { margin: 0; min-width: 0; }
 #screen-guidelines, #section-theory,
-#mitigation, #comparison, #quiz, #log { grid-column: 1 / -1; }
+#mitigation, #comparison, #workshop, #quiz, #log { grid-column: 1 / -1; }
 #stepper-section {
   grid-column: 1;
   grid-row: span 3;
