@@ -1,7 +1,399 @@
 /* ==========================================================================
    lab.css — OWNER: Sanika Lobo
-   Purpose: topology, nodes, packets, queue grid, metric cards, server badges,
-   chart, log, comparison table, quiz. Classes owned here are listed in
-   CONTRACT.md §5.6. Use only var(--...) tokens from base.css.
-   STUB: replace with the real stylesheet (SL2).
+   Purpose: simulation components: topology, nodes, packets, queue grid,
+   controls, dashboard cards, server badges, chart, log, comparison table,
+   quiz, component info and mitigation items. Classes owned here are listed in
+   CONTRACT.md §5.6. Uses ONLY the var(--...) tokens from base.css, so light
+   and dark themes both work. Colour is never the only signal: variants also
+   differ by shape, stroke, text or icon.
    ========================================================================== */
+
+/* ---- 1. Topology ---------------------------------------------------------- */
+.topology { overflow: hidden; }
+#topology-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 460px;
+  background:
+    radial-gradient(circle at 1px 1px, var(--color-border) 1px, transparent 1.5px) 0 0 / 20px 20px,
+    var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}
+
+/* On phones the diagram keeps a readable minimum width and scrolls inside its own box (never the page). */
+.topology-scroll { overflow-x: auto; border-radius: var(--radius-sm); -webkit-overflow-scrolling: touch; }
+@media (max-width: 760px) { #topology-svg { min-width: 640px; } }
+
+.link { stroke: var(--color-border); stroke-width: 3; stroke-linecap: round; }
+
+.node { cursor: pointer; outline: none; }
+.node .node__box { fill: var(--color-surface); transition: stroke 0.15s, stroke-width 0.15s, filter 0.15s; }
+.node:hover .node__box { stroke: var(--color-primary); }
+.node:focus-visible .node__box { stroke: var(--color-focus); stroke-width: 4; filter: drop-shadow(0 0 4px var(--color-focus)); }
+.node.is-selected .node__box { stroke: var(--color-focus); stroke-width: 4; fill: var(--color-surface-2); }
+.node text { pointer-events: none; user-select: none; }
+.node__icon { pointer-events: none; }
+
+/* coloured top rail per node role (a shape cue as well as a colour cue: the label always shows the role) */
+.node--client .node__box    { stroke: var(--color-legit); }
+.node--generator .node__box { stroke: var(--color-attack); stroke-dasharray: 7 4; }
+.node--server .node__box    { stroke: var(--color-completed); }
+.node--queue .node__box     { stroke: var(--color-pending); }
+.node--status .node__box    { stroke-width: 4; }
+.node--status.server-badge--healthy .node__box     { stroke: var(--color-healthy); }
+.node--status.server-badge--pressure .node__box    { stroke: var(--color-pressure); }
+.node--status.server-badge--degraded .node__box    { stroke: var(--color-degraded); stroke-dasharray: 10 4; }
+.node--status.server-badge--unavailable .node__box { stroke: var(--color-unavailable); stroke-dasharray: 4 4; }
+.node--client:hover .node__box, .node--generator:hover .node__box,
+.node--server:hover .node__box, .node--queue:hover .node__box { stroke: var(--color-primary); }
+
+/* ---- 2. Packets ----------------------------------------------------------- */
+.packet { stroke: var(--color-surface); stroke-width: 2; r: 6px; fill: var(--color-legit); pointer-events: none; }
+.packet--legit    { fill: var(--color-legit); }                                                    /* solid circle */
+.packet--attack   { fill: var(--color-attack); r: 7px; stroke: var(--color-text); }                /* larger, dark ring */
+.packet--synack   { fill: var(--color-pending); }                                                  /* amber */
+.packet--ack      { fill: var(--color-completed); }                                                /* blue */
+.packet--rejected { fill: var(--color-rejected); stroke: var(--color-text); stroke-dasharray: 3 2; }
+.packet--filtered { fill: var(--color-rejected); stroke: var(--color-attack); stroke-dasharray: 2 2; }
+.packet--cookie   { fill: var(--color-completed); stroke: var(--color-text); stroke-width: 3; stroke-dasharray: 1 3; }
+
+/* ---- 3. Queue grid -------------------------------------------------------- */
+.queue-slot {
+  stroke-width: 1;
+  transition: fill 0.25s ease, stroke 0.25s ease;
+}
+.queue-slot--free   { fill: var(--color-surface-2); stroke: var(--color-border); }
+.queue-slot--legit  { fill: var(--color-legit); stroke: var(--color-legit); rx: 5px; }              /* round */
+.queue-slot--attack { fill: var(--color-attack); stroke: var(--color-text); rx: 0; }                /* square, outlined */
+
+/* HTML queue grid (if a page renders the slots as elements instead of SVG): 10x10, wraps on mobile */
+div.queue-grid, ul.queue-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+  max-width: 360px;
+}
+div.queue-grid .queue-slot { aspect-ratio: 1; border-radius: 3px; border: 1px solid var(--color-border); }
+div.queue-grid .queue-slot--free   { background: var(--color-surface-2); }
+div.queue-grid .queue-slot--legit  { background: var(--color-legit); border-color: var(--color-legit); border-radius: 50%; }
+div.queue-grid .queue-slot--attack { background: var(--color-attack); border-color: var(--color-text); border-radius: 0; }
+
+/* ---- 4. Component info ---------------------------------------------------- */
+.component-info {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.component-info:empty { display: none; }
+.component-info strong { display: block; margin-bottom: var(--space-1); }
+.component-info p { margin: 0; color: var(--color-text); }
+
+/* ---- 5. Simulation controls ----------------------------------------------- */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.controls-row label { color: var(--color-muted); font-size: 0.9375rem; margin-left: var(--space-2); }
+
+/* ---- 6. Dashboard: server badge, metric cards, progress, chart ------------- */
+#server-state { margin-bottom: var(--space-4); }
+
+.server-badge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.server-badge::before {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  line-height: 1;
+  color: #ffffff;
+  background: var(--color-muted);
+  border-radius: 50%;
+}
+.server-state__name { font-weight: 700; font-size: 1.0625rem; }
+.server-state__desc { flex: 1 1 220px; color: var(--color-muted); font-size: 0.9375rem; }
+
+/* each state has its own icon glyph and border style as well as its colour */
+.server-badge.server-badge--healthy     { background: color-mix(in srgb, var(--color-healthy) 12%, var(--color-surface));     border-color: var(--color-healthy); }
+.server-badge.server-badge--pressure    { background: color-mix(in srgb, var(--color-pressure) 14%, var(--color-surface));    border-color: var(--color-pressure); }
+.server-badge.server-badge--degraded    { background: color-mix(in srgb, var(--color-degraded) 14%, var(--color-surface));    border-color: var(--color-degraded); border-style: dashed; }
+.server-badge.server-badge--unavailable { background: color-mix(in srgb, var(--color-unavailable) 14%, var(--color-surface)); border-color: var(--color-unavailable); border-style: dotted; }
+.server-badge.server-badge--healthy::before     { content: "\2713"; background: var(--color-healthy); }
+.server-badge.server-badge--pressure::before    { content: "!";     background: var(--color-pressure); }
+.server-badge.server-badge--degraded::before    { content: "\25B2"; background: var(--color-degraded); font-size: 0.75rem; }
+.server-badge.server-badge--unavailable::before { content: "\2715"; background: var(--color-unavailable); }
+/* white glyphs on the amber/green tokens must keep 3:1 in dark mode, where those tokens are light */
+@media (prefers-color-scheme: dark) {
+  .server-badge.server-badge--healthy::before,
+  .server-badge.server-badge--pressure::before,
+  .server-badge.server-badge--degraded::before,
+  .server-badge.server-badge--unavailable::before { color: #08111f; }
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 1180px) { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 960px)  { .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 760px)  { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px)  { .metrics-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border-top: 3px solid var(--color-border);
+}
+.section .metric { background: var(--color-surface-2); }
+.metric__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.metric__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* a coloured top edge per metric, matching the colour meaning used everywhere */
+.metric[data-metric="syn-incoming"]  { border-top-color: var(--color-attack); }
+.metric[data-metric="pending"]       { border-top-color: var(--color-pending); }
+.metric[data-metric="completed"]     { border-top-color: var(--color-completed); }
+.metric[data-metric="rejected"]      { border-top-color: var(--color-rejected); }
+.metric[data-metric="queue-util"]    { border-top-color: var(--color-pending); }
+.metric[data-metric="cpu"]           { border-top-color: var(--color-degraded); }
+.metric[data-metric="response-time"] { border-top-color: var(--color-muted); }
+.metric[data-metric="availability"]  { border-top-color: var(--color-healthy); }
+
+.progress {
+  height: 8px;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  background: var(--color-border);
+  border-radius: 999px;
+}
+.progress__bar {
+  width: 0;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.metric[data-metric="queue-util"] .progress__bar   { background: var(--color-pending); }
+.metric[data-metric="cpu"] .progress__bar          { background: var(--color-degraded); }
+.metric[data-metric="availability"] .progress__bar { background: var(--color-healthy); }
+
+.chart {
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.chart canvas { display: block; width: 100%; }
+
+/* ---- 7. Mitigation items ---------------------------------------------------- */
+#mitigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-4); }
+#mitigation > h2, #mitigation > .btn { grid-column: 1 / -1; }
+#mitigation > .btn { justify-self: start; margin-top: var(--space-2); }
+.mitigation-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.mitigation-item:has(input:checked) {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+.mitigation-item label { font-weight: 600; cursor: pointer; }
+.mitigation-item p, .mitigation-item small, .mitigation-item .mitigation-text { grid-column: 2; margin: 0; font-size: 0.9375rem; }
+/* muted limitation line */
+.mitigation-item .limitation, .mitigation-item small { grid-column: 2; color: var(--color-muted); font-size: 0.8125rem; font-style: italic; }
+@media (max-width: 720px) { #mitigation { grid-template-columns: minmax(0, 1fr); } #mitigation > .btn { justify-self: stretch; } }
+
+/* ---- 8. Comparison table ---------------------------------------------------- */
+.compare-table {
+  display: block;               /* lets the table scroll horizontally inside its own box on phones */
+  width: 100%;
+  max-height: 460px;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.compare-table:empty { display: none; }
+.compare-table caption { display: block; }
+.compare-table thead, .compare-table tbody {
+  display: table;
+  width: 100%;
+  min-width: 560px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.compare-table th, .compare-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--color-border);
+}
+.compare-table th:first-child, .compare-table td:first-child { width: 34%; text-align: left; }
+.compare-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border-bottom: 2px solid var(--color-border);
+}
+.compare-table tbody th { font-weight: 600; background: transparent; }
+.compare-table tbody td { font-family: var(--font-mono); }
+.compare-table tbody tr:nth-child(even) { background: var(--color-surface-2); }
+.compare-table tbody tr:last-child th, .compare-table tbody tr:last-child td { border-bottom: 0; }
+.compare-change { display: inline-block; margin-left: var(--space-1); font-size: 0.8125rem; font-weight: 700; white-space: nowrap; }
+.compare-change--good { color: var(--color-healthy); }
+.compare-change--bad  { color: var(--color-unavailable); }
+#compare-explanation {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-completed);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+#compare-explanation:empty { display: none; }
+
+/* ---- 9. Quiz ----------------------------------------------------------------- */
+.quiz-question { margin: 0 0 var(--space-4); padding: 0; border: 0; min-width: 0; }
+.quiz-question legend, .quiz-question h3 {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-3);
+  padding: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 52px;
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.quiz-option:hover:not(:disabled) { background: var(--color-surface-2); border-color: var(--color-primary); }
+.quiz-option[aria-checked="true"], .quiz-option[aria-pressed="true"], .quiz-option.is-selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+.quiz-option:disabled { cursor: default; }
+
+/* correct / wrong carry an icon, not just a colour */
+.quiz-option.is-correct {
+  border-color: var(--color-healthy);
+  background: color-mix(in srgb, var(--color-healthy) 14%, var(--color-surface));
+  color: var(--color-text);
+}
+.quiz-option.is-correct::after { content: "\2713  Correct"; margin-left: auto; font-weight: 700; color: var(--color-healthy); white-space: nowrap; }
+.quiz-option.is-wrong {
+  border-color: var(--color-unavailable);
+  background: color-mix(in srgb, var(--color-unavailable) 12%, var(--color-surface));
+  color: var(--color-text);
+  border-style: dashed;
+}
+.quiz-option.is-wrong::after { content: "\2715  Incorrect"; margin-left: auto; font-weight: 700; color: var(--color-unavailable); white-space: nowrap; }
+
+.quiz-feedback {
+  margin: var(--space-3) 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.quiz-feedback:empty { display: none; }
+#quiz-score { margin: var(--space-3) 0 0; font-weight: 700; font-size: 1.0625rem; }
+#quiz-score:empty { display: none; }
+
+/* ---- 10. Experiment log ------------------------------------------------------- */
+#log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+#log-list:empty::before { content: "No events yet. Entries appear here as you run the experiment."; display: block; padding: var(--space-4); color: var(--color-muted); }
+.log-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.9375rem;
+  border-left: 5px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.log-entry:last-child { border-bottom: 0; }
+.log-entry__time, .log-entry__sim { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.log-entry__level { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.log-entry__message { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.log-entry--info    { border-left-color: var(--color-completed); }
+.log-entry--info    .log-entry__level { color: var(--color-completed); }
+.log-entry--success { border-left-color: var(--color-healthy); }
+.log-entry--success .log-entry__level { color: var(--color-healthy); }
+.log-entry--warn    { border-left-color: var(--color-degraded); background: color-mix(in srgb, var(--color-degraded) 7%, var(--color-surface)); }
+.log-entry--warn    .log-entry__level { color: var(--color-degraded); }
+.log-entry--danger  { border-left-color: var(--color-unavailable); background: color-mix(in srgb, var(--color-unavailable) 8%, var(--color-surface)); }
+.log-entry--danger  .log-entry__level { color: var(--color-unavailable); }
+
+/* ---- 11. Motion --------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .queue-slot, .progress__bar, .server-badge, .node .node__box, .quiz-option, .mitigation-item { transition: none !important; }
+}
