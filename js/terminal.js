@@ -17,6 +17,8 @@ window.Lab = window.Lab || {};
   var history = [], historyPos = 0;
   var tall = false;
   var wired = false;
+  var cmds = [], curlOk = false;         // everything typed so far (the guide checks against it)
+  var guideDone = {}, guideListeners = [];
 
   function $(id) { return document.getElementById(id); }
   function shell() { return Lab.Workshop.shell; }
@@ -42,11 +44,121 @@ window.Lab = window.Lab || {};
     if (line.trim()) { history.push(line); historyPos = history.length; }
     if (!silentEcho) print('root@web01:~# ' + line, 'ws-line ws-line--cmd');
     var r = shell().run(host, line);
+    cmds.push(line);
+    if (/^\s*(sudo\s+)?curl\b/.test(line)) curlOk = r.lines.length > 0 && !/timed out/.test(r.lines.join(' '));
     if (r.clear) out.textContent = '';
     r.lines.forEach(function (l) { print(l); });
     out.scrollTop = out.scrollHeight;
+    updateGuide();
     notify(line, r);
     return r;
+  }
+
+
+  // ---- guided runbook ---------------------------------------------------------------------
+  function ranMatch(re) { return cmds.some(function (c) { return re.test(c.replace(/^\s*sudo\s+/, '')); }); }
+
+  function stepSatisfied(key) {
+    var ev = shell().evaluate(host), st = ev.status;
+    var conf = shell().parseConf(host.files['/etc/sysctl.d/99-synflood.conf']);
+    switch (key) {
+      case 'count': return host.ran.count;
+      case 'klog': return host.ran.klog;
+      case 'capture': return host.ran.capture;
+      case 'readcookies': return ranMatch(/^sysctl\s+(-n\s+)?net\.ipv4\.tcp_syncookies\s*$/);
+      case 'cookies': return st.cookies >= 1;
+      case 'retries': return st.retries >= 1 && st.retries <= 3;
+      case 'rateAccept': return !!st.globalLimit || st.incomplete;
+      case 'rateDrop': return !!st.globalLimit && !st.lowLimit;
+      case 'listRules': return ranMatch(/^(iptables\s+(-S|-L)|nft\s+list)/);
+      case 'persistCookies': return conf['net.ipv4.tcp_syncookies'] >= 1;
+      case 'persistRetries': return conf['net.ipv4.tcp_synack_retries'] >= 1 && conf['net.ipv4.tcp_synack_retries'] <= 3;
+      case 'load': return host.loadedVersion === host.fileVersion && conf['net.ipv4.tcp_syncookies'] >= 1 && conf['net.ipv4.tcp_synack_retries'] >= 1;
+      case 'curl': return curlOk;
+      case 'loose': return st.loose === 0;
+      case 'notrack': return st.rawNotrack;
+      case 'synproxy': return st.synproxyRule;
+    }
+    return false;
+  }
+
+  function guideSteps() { return (Lab.Content.runbook && Lab.Content.runbook.steps) || []; }
+
+  function guideCurrent() {
+    var steps = guideSteps();
+    for (var i = 0; i < steps.length; i++) if (!guideDone[steps[i].id]) return i;
+    return -1;
+  }
+
+  function requiredDone() { return guideSteps().every(function (st) { return !st.required || guideDone[st.id]; }); }
+
+  function updateGuide() {
+    var steps = guideSteps(), wasRequired = requiredDone(), fresh = [];
+    steps.forEach(function (st, i) {
+      if (!guideDone[st.id] && stepSatisfied(st.check)) { guideDone[st.id] = true; fresh.push(i); }
+    });
+    renderGuide(fresh);
+    fresh.forEach(function (i) {
+      guideListeners.slice().forEach(function (fn) { fn(steps[i], i, !wasRequired && requiredDone()); });
+    });
+  }
+
+  function renderGuide(fresh) {
+    var g = $('term-guide');
+    if (!g) return;
+    var R = Lab.Content.runbook, steps = guideSteps();
+    if (!R) return;
+    g.textContent = '';
+    var doneCount = steps.filter(function (st) { return guideDone[st.id]; }).length;
+    var reqTotal = steps.filter(function (st) { return st.required; }).length;
+    var reqDone = steps.filter(function (st) { return st.required && guideDone[st.id]; }).length;
+
+    var head = document.createElement('div'); head.className = 'term-guide__head';
+    var h = document.createElement('strong'); h.textContent = R.title; head.appendChild(h);
+    var cnt = document.createElement('span'); cnt.id = 'term-guide-count'; cnt.className = 'term-guide__count';
+    cnt.textContent = reqDone + ' of ' + reqTotal + ' required steps done'; head.appendChild(cnt);
+    g.appendChild(head);
+    var track = document.createElement('div'); track.className = 'term-guide__track'; track.setAttribute('aria-hidden', 'true');
+    var bar = document.createElement('div'); bar.className = 'term-guide__bar'; bar.style.width = (reqDone / reqTotal * 100) + '%'; track.appendChild(bar);
+    g.appendChild(track);
+
+    var live = document.createElement('div'); live.className = 'term-guide__live'; live.setAttribute('role', 'status'); live.id = 'term-guide-live';
+    if (fresh && fresh.length) {
+      var last = steps[fresh[fresh.length - 1]];
+      live.textContent = 'Step complete: ' + last.title + '. ' + last.learned;
+    }
+    var allReq = requiredDone();
+    if (allReq) { var okb = document.createElement('div'); okb.className = 'term-guide__done'; okb.id = 'term-guide-complete'; okb.textContent = R.complete; g.appendChild(okb); }
+    if (live.textContent) g.appendChild(live);
+
+    var cur = guideCurrent();
+    if (cur >= 0) {
+      var st = steps[cur];
+      var card = document.createElement('div'); card.className = 'term-guide__card'; card.id = 'term-guide-card';
+      var tag = document.createElement('p'); tag.className = 'term-guide__tag';
+      tag.textContent = (st.required ? 'Step ' : 'Bonus ') + (cur + 1) + ' of ' + steps.length; card.appendChild(tag);
+      var t = document.createElement('h3'); t.className = 'term-guide__title'; t.textContent = st.title; card.appendChild(t);
+      var why = document.createElement('p'); why.className = 'term-guide__why'; why.textContent = st.why; card.appendChild(why);
+      var lbl = document.createElement('p'); lbl.className = 'term-guide__label'; lbl.textContent = 'Run this command:'; card.appendChild(lbl);
+      var pre = document.createElement('pre'); pre.className = 'term-guide__cmd'; pre.id = 'term-guide-command';
+      var code = document.createElement('code'); code.textContent = st.command; pre.appendChild(code); card.appendChild(pre);
+      var ins = document.createElement('button'); ins.type = 'button'; ins.id = 'btn-guide-insert'; ins.className = 'term-drawer__btn';
+      ins.textContent = 'Put it in the prompt';
+      ins.addEventListener('click', function () { input.value = st.command; input.focus(); });
+      card.appendChild(ins);
+      g.appendChild(card);
+    }
+
+    var det = document.createElement('details'); det.className = 'term-guide__all';
+    var sum = document.createElement('summary'); sum.textContent = 'All steps (' + doneCount + '/' + steps.length + ')'; det.appendChild(sum);
+    var ol = document.createElement('ol');
+    steps.forEach(function (st, i) {
+      var li = document.createElement('li');
+      li.className = guideDone[st.id] ? 'is-done' : (i === cur ? 'is-current' : '');
+      li.textContent = (guideDone[st.id] ? '✓ ' : '') + st.title + (st.required ? '' : ' (bonus)');
+      ol.appendChild(li);
+    });
+    det.appendChild(ol); g.appendChild(det);
   }
 
   function setOpen(open, focus) {
@@ -102,16 +214,21 @@ window.Lab = window.Lab || {};
       wire();
       out.textContent = '';
       motd();
+      cmds = []; curlOk = false; guideDone = {};
+      renderGuide();
     },
     reset: function () {
       host = shell().createHost();
-      history = []; historyPos = 0;
+      history = []; historyPos = 0; cmds = []; curlOk = false; guideDone = {};
       if (out) { out.textContent = ''; motd(); }
+      renderGuide();
       setOpen(false, false);
     },
     getHost: function () { return host; },
     getDefences: function () { return shell().evaluate(host); },
     setLevel: function (level) { if (host) host.level = level; },
+    onGuide: function (fn) { guideListeners.push(fn); },
+    guideProgress: function () { var st = guideSteps(); return { done: st.filter(function (x) { return guideDone[x.id]; }).length, total: st.length, requiredDone: requiredDone() }; },
     on: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (f) { return f !== fn; }); }; },
     open: function (focus) { setOpen(true, focus); },
     close: function () { setOpen(false, false); },

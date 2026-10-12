@@ -95,3 +95,5 @@ After the simulation the student must complete five modules (`js/workshop.js`, t
 Tests: `node tests/shell.test.js` (shell and content checks). The quiz now has 12 questions. Ideas for the team: more commands (`awk`, `conntrack -L`), a second scenario (non-spoofed botnet), IPv6.
 
 **Terminal pop-up.** A header button (or Ctrl+`) opens a docked Linux terminal (`js/terminal.js`). It opens by itself at step 6. What you configure there (`sysctl`, `iptables`, `nft`) is evaluated into the four defences, and the switches in the Mitigation section follow it, so the terminal is the control panel for "Run With Mitigation".
+
+**Guided runbook.** The terminal pop-up has a step-by-step runbook (13 required steps plus 3 SYNPROXY bonus steps, defined in `Lab.Content.runbook`). Each step shows the exact command and why it matters; it completes when the *server state* satisfies it (checked in `js/terminal.js`), so any equivalent command also counts.

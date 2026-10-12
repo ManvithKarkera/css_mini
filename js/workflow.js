@@ -598,6 +598,10 @@ window.Lab = window.Lab || {};
     Lab.Dashboard.init(engine);
     Lab.Terminal.init();
     Lab.Terminal.on(onTerminalCommand);
+    Lab.Terminal.onGuide(function (step, i, allRequired) {
+      log('Runbook step done: ' + step.title + '.', 'success');
+      if (allRequired) { log('Runbook complete. Run the mitigated simulation to measure it.', 'success'); notify('Runbook complete. Press Run With Mitigation.', 'success'); }
+    });
     renderContent();
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     wire();
