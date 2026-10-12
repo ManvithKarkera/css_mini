@@ -1,0 +1,35 @@
+/* ===== css/base.css ===== */
+/* ==========================================================================
+   base.css — OWNER: Yash Masaye
+   Purpose: :root tokens, reset, layout, buttons, forms, stepper, theory,
+   modals, toasts. Classes owned here are listed in CONTRACT.md §5.6.
+   STUB: replace with the real stylesheet (YM2). Tokens must be defined first
+   because lab.css uses them.
+   ========================================================================== */
+:root {
+  --color-bg: #f7f8fa; --color-surface: #ffffff; --color-surface-2: #eef1f5;
+  --color-text: #1b2430; --color-muted: #5b6675; --color-border: #d5dbe3;
+  --color-primary: #1f5fbf; --color-primary-contrast: #ffffff; --color-focus: #0b57d0;
+  --color-legit: #0f8a6d; --color-attack: #c8421a; --color-pending: #a86500;
+  --color-rejected: #66707d; --color-completed: #1f5fbf;
+  --color-healthy: #12804f; --color-pressure: #9a6b00;
+  --color-degraded: #b5530a; --color-unavailable: #b3261e;
+  --font-sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --radius: 8px; --radius-sm: 4px; --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-sans); background: var(--color-bg); color: var(--color-text); }
+.container { max-width: 1200px; margin: 0 auto; padding: var(--space-4); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+/* ===== css/lab.css ===== */
+/* ==========================================================================
+   lab.css — OWNER: Sanika Lobo
+   Purpose: topology, nodes, packets, queue grid, metric cards, server badges,
+   chart, log, comparison table, quiz. Classes owned here are listed in
+   CONTRACT.md §5.6. Use only var(--...) tokens from base.css.
+   STUB: replace with the real stylesheet (SL2).
+   ========================================================================== */
