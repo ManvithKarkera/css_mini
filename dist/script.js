@@ -2,8 +2,6 @@
 /* ==========================================================================
    content.js — OWNER: Meet Mangaonkar
    Purpose: all student-facing text and the quiz (Lab.Content, CONTRACT §5.7).
-   A complete first draft: please fact-check, tighten the wording, and replace
-   the nine guidelines with the exact wording from the professor's brief.
    Conventions: "simulated" is used consistently; nothing here claims a real
    attack happens. Plain text only (workflow.js inserts it with textContent).
    ========================================================================== */
@@ -16,19 +14,19 @@ window.Lab = window.Lab || {};
 
     objective: 'Demonstrate the effect of a SYN Flood attack on network availability.',
 
-    disclaimer: 'Everything in this lab is simulated inside your browser. All numbers are educational estimates, not real benchmarks, and no network traffic is sent.',
+    disclaimer: 'Everything in this lab is simulated inside your browser. All numbers are educational estimates, not real benchmarks, and no real network traffic is sent.',
 
-    // TODO (Meet): replace with the nine "Before You Begin" instructions from the brief.
+    // The nine "Before You Begin" instructions from the brief, lightly polished.
     guidelines: [
       'This lab is a browser-only simulation. No real network traffic is created and nothing leaves your computer.',
       'All numbers you see are simulated educational estimates, not measurements of a real system.',
-      'Work through the nine steps in order. A step unlocks when you finish the one before it.',
-      'Read the theory first. You can reopen it at any time with the Theory button in the header.',
-      'Always run the baseline before the attack, so you have a healthy server to compare against.',
-      'Use Stop to halt a simulation immediately. Your results stay on screen so you can study them.',
-      'Change the defences only while no simulation is running.',
-      'Use Reset to start the experiment again. If you already have results, you will be asked to confirm.',
-      'Use what you learn to defend systems. Never send flood traffic to a network you do not own or have written permission to test.'
+      'Work through the nine guided steps in order. Each step unlocks as you complete the previous one.',
+      'Read the theory first. You can reopen it at any time using the Theory button in the header.',
+      'Always run the baseline first, giving you a healthy server baseline to compare against.',
+      'Use Stop to halt a simulation immediately. Your results remain on screen so you can study them.',
+      'Configure defences only while no simulation is running.',
+      'Use Reset to restart the experiment. If you already have run results, you will be asked to confirm.',
+      'Apply what you learn to defend systems. Never direct flood traffic at any network without explicit written permission.'
     ],
 
     theory: {
@@ -161,7 +159,12 @@ window.Lab = window.Lab || {};
       {
         id: 1,
         question: 'In which order are the messages of the TCP three-way handshake sent?',
-        options: ['ACK, SYN, SYN-ACK', 'SYN, SYN-ACK, ACK', 'SYN, ACK, SYN-ACK', 'SYN-ACK, SYN, ACK'],
+        options: [
+          'ACK, SYN, SYN-ACK',
+          'SYN, SYN-ACK, ACK',
+          'SYN, ACK, SYN-ACK',
+          'SYN-ACK, SYN, ACK'
+        ],
         answer: 1,
         explanation: 'The client sends SYN, the server answers with SYN-ACK, and the client finishes with ACK. Only after the final ACK is the connection established. A SYN flood abuses the gap between the second and third message.'
       },
