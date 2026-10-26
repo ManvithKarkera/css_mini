@@ -4,89 +4,77 @@
    guidelines, theory, modals, toasts. Classes owned here are listed in
    CONTRACT.md §5.6. lab.css (Sanika) only uses the tokens defined here.
 
+   Look: a calm clinical workspace (light grey canvas, white rounded cards,
+   electric-blue round nodes, charcoal pills for the active choice, thin blue
+   connector lines, Urbanist). Theme details live in theme.css.
+
    Colour meaning (used everywhere):
-     legit = teal/green · attack = red-orange · pending = amber
+     legit = electric blue · attack = charcoal · pending = amber
      rejected = grey · completed = blue
      Healthy = green · Under Pressure = amber · Degraded = orange · Unavailable = red
-   Every text/background pair meets WCAG AA (4.5:1) in both themes, and colour
-   is never the only signal (labels, icons or shapes always accompany it).
-   No external fonts or URLs: system font stacks only.
+   Every text/background pair meets WCAG AA (4.5:1), and colour is never the
+   only signal (labels, icons or shapes always accompany it).
+   One local font (fonts/urbanist-latin.woff2, OFL); build.js inlines it into
+   dist/style.css so the lab still opens offline from file://.
    ========================================================================== */
 
-/* ---- 1. Tokens (light theme) ------------------------------------------- */
+@font-face {
+  font-family: "Urbanist";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("../fonts/urbanist-latin.woff2") format("woff2");
+}
+
+/* ---- 1. Tokens ------------------------------------------------------------ */
 :root {
   color-scheme: light;
 
-  --color-bg: #f3f5f9;
+  --color-bg: #e9eaec;
   --color-surface: #ffffff;
-  --color-surface-2: #eaeef5;
-  --color-text: #16202e;
-  --color-muted: #566275;
-  --color-border: #d3dae6;
+  --color-surface-2: #f2f3f5;
+  --color-text: #1c1d20;
+  --color-muted: #5c6067;
+  --color-border: #dcdee2;
 
-  --color-primary: #1d4fb8;
+  --color-primary: #1a56f0;
   --color-primary-contrast: #ffffff;
-  --color-focus: #1a6ff0;
+  --color-focus: #1a56f0;
+  --color-ink: #36383c;            /* charcoal: active chips, feature card, terminal */
+  --color-ink-2: #2a2c2f;
+  --color-ink-text: #f4f5f7;
+  --color-ink-muted: #b4b8bf;
 
-  --color-legit: #0b7a5f;
-  --color-attack: #c2410c;
-  --color-pending: #96590a;
-  --color-rejected: #5f6b7a;
-  --color-completed: #1d4fb8;
+  --color-legit: #1a56f0;
+  --color-attack: #36383c;
+  --color-pending: #9a6200;
+  --color-rejected: #7a7f87;
+  --color-completed: #1a56f0;
 
-  --color-healthy: #0f7a46;
-  --color-pressure: #8f5a00;
-  --color-degraded: #b34700;
-  --color-unavailable: #b42318;
+  --color-healthy: #13804b;
+  --color-pressure: #9a6200;
+  --color-degraded: #c2500f;
+  --color-unavailable: #c8281e;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Urbanist", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", Menlo, monospace;
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(16, 28, 46, 0.06), 0 4px 14px rgba(16, 28, 46, 0.06);
+  --radius: 28px;
+  --radius-sm: 18px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgba(28, 29, 32, 0.04), 0 8px 24px -12px rgba(28, 29, 32, 0.12);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
-  --space-6: 32px;
+  --space-6: 36px;
 
   /* internal helpers (not part of the contract) */
   --header-h: 68px;
   --page-max: 1200px;
-}
-
-/* ---- 1b. Tokens (dark theme): same names, different values -------------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-
-    --color-bg: #0e1520;
-    --color-surface: #162131;
-    --color-surface-2: #1e2c40;
-    --color-text: #e8edf5;
-    --color-muted: #a3b0c3;
-    --color-border: #2d3d55;
-
-    --color-primary: #7aa9ff;
-    --color-primary-contrast: #08111f;
-    --color-focus: #9cc0ff;
-
-    --color-legit: #3ddbb0;
-    --color-attack: #ff8d62;
-    --color-pending: #f2bb4f;
-    --color-rejected: #a3b0c3;
-    --color-completed: #8ab6ff;
-
-    --color-healthy: #4fd68f;
-    --color-pressure: #f2c14b;
-    --color-degraded: #ff9a52;
-    --color-unavailable: #ff7b72;
-
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.3);
-  }
 }
 
 /* ---- 2. Reset and base -------------------------------------------------- */
@@ -296,10 +284,6 @@ main.container > .section { margin: 0; min-width: 0; }
   border-color: #b42318;
 }
 .btn--danger:hover:not(:disabled) { background: #9a1b12; border-color: #9a1b12; }
-@media (prefers-color-scheme: dark) {
-  .btn--danger { background: #d92d20; border-color: #d92d20; }
-  .btn--danger:hover:not(:disabled) { background: #b42318; border-color: #b42318; }
-}
 
 .btn--ghost { background: transparent; }
 
@@ -812,89 +796,6 @@ main.container > .section:not([hidden]) { animation: section-in 0.35s ease-out b
 
 @media (max-width: 600px) { .hero { padding: var(--space-5) var(--space-4); } .hero__title { font-size: 1.3125rem; } }
 
-/* ==========================================================================
-   16. Visual refresh: network operations console
-   Keeps the existing DOM and behaviour intact while giving every stage of the
-   lab one coherent visual language.
-   ========================================================================== */
-:root {
-  color-scheme: dark;
-  --color-bg: #07111f;
-  --color-surface: #0d1b2d;
-  --color-surface-2: #12253b;
-  --color-text: #e9f2ff;
-  --color-muted: #8fa6c2;
-  --color-border: #27425f;
-  --color-primary: #66e3c4;
-  --color-primary-contrast: #062119;
-  --color-focus: #a4f9e5;
-  --color-legit: #66e3c4;
-  --color-attack: #ff7d69;
-  --color-pending: #f4c866;
-  --color-rejected: #7890ac;
-  --color-completed: #7fb4ff;
-  --color-healthy: #66e3c4;
-  --color-pressure: #f4c866;
-  --color-degraded: #ffad68;
-  --color-unavailable: #ff7d69;
-  --radius: 18px;
-  --radius-sm: 12px;
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.24), 0 2px 8px rgba(0, 0, 0, 0.22);
-  --space-1: 5px;
-  --space-2: 9px;
-  --space-3: 14px;
-  --space-4: 20px;
-  --space-5: 30px;
-  --space-6: 42px;
-  --header-h: 98px;
-  --page-max: 1560px;
-}
-
-body {
-  background: radial-gradient(circle at 5% 0%, rgba(63, 126, 172, 0.18), transparent 34rem), radial-gradient(circle at 96% 36%, rgba(39, 155, 129, 0.12), transparent 30rem), var(--color-bg);
-  font-size: 0.97rem;
-}
-body::before {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none; content: ""; opacity: 0.2;
-  background-image: linear-gradient(rgba(139, 177, 211, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 177, 211, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 80%);
-}
-#lab-header {
-  min-height: var(--header-h); background: rgba(7, 17, 31, 0.84); border-bottom-color: rgba(127, 180, 255, 0.2);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(18px);
-}
-#lab-header h1 { font-size: 1.05rem; letter-spacing: 0.02em; text-transform: uppercase; }
-#lab-header h1::before { width: 34px; height: 34px; border: 1px solid rgba(102, 227, 196, 0.65); border-radius: 10px; box-shadow: 0 0 24px rgba(102, 227, 196, 0.18); }
-.section { border-color: rgba(127, 180, 255, 0.18); background: linear-gradient(145deg, rgba(13, 27, 45, 0.96), rgba(10, 23, 39, 0.96)); box-shadow: var(--shadow); }
-.section > h2 { border-bottom-color: rgba(127, 180, 255, 0.16); letter-spacing: -0.02em; }
-.card, .section .card { background: rgba(18, 37, 59, 0.76); border-color: rgba(127, 180, 255, 0.15); }
-.btn { min-height: 42px; border-color: rgba(127, 180, 255, 0.28); border-radius: 10px; transition-property: background-color, border-color, box-shadow, transform; transition-duration: 150ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
-.btn:hover:not(:disabled) { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(102, 227, 196, 0.1); }
-.btn:active:not(:disabled) { transform: scale(0.96); }
-.btn--primary { color: var(--color-primary-contrast); background: var(--color-primary); border-color: var(--color-primary); box-shadow: 0 8px 22px rgba(102, 227, 196, 0.16); }
-.btn--primary:hover:not(:disabled) { background: #8af0d8; border-color: #8af0d8; filter: none; }
-.btn--danger { background: var(--color-attack); border-color: var(--color-attack); color: #1d0806; }
-.btn--danger:hover:not(:disabled) { background: #ff9d8f; border-color: #ff9d8f; }
-.hero { margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) var(--space-4); padding: clamp(24px, 3.5vw, 46px) clamp(22px, 5vw, 60px) clamp(20px, 2.5vw, 34px); border-radius: var(--radius) var(--radius) 0 0; background: linear-gradient(110deg, rgba(7, 17, 31, 0.35), rgba(7, 17, 31, 0.86)), radial-gradient(circle at 82% 18%, rgba(102, 227, 196, 0.32), transparent 14rem), linear-gradient(135deg, #17395a 0%, #0d1b2d 72%); }
-.hero__eyebrow { color: var(--color-primary); }
-.hero__title { max-width: 22em; font-size: clamp(1.4rem, 2.4vw, 2rem); letter-spacing: -0.03em; line-height: 1.3; }
-.hero__facts { gap: 10px; }
-.hero__facts li { padding: 9px 13px; background: rgba(7, 17, 31, 0.36); border: 1px solid rgba(164, 249, 229, 0.2); border-radius: 999px; }
-.stepper { background: rgba(7, 17, 31, 0.4); border-color: rgba(127, 180, 255, 0.15); }
-.step { border-color: transparent; border-radius: 10px; }
-.step--current { background: rgba(102, 227, 196, 0.1); border-color: rgba(102, 227, 196, 0.35); }
-.step--completed { color: var(--color-primary); }
-.field, input[type="text"], input[type="number"], select { color: var(--color-text); background: #091727; border-color: rgba(127, 180, 255, 0.3); border-radius: 9px; }
-.disclaimer { background: rgba(244, 200, 102, 0.08); border-color: rgba(244, 200, 102, 0.45); }
-.sim-badge { color: var(--color-primary); background: rgba(102, 227, 196, 0.08); border-color: rgba(102, 227, 196, 0.4); }
-.sim-badge::before { background: var(--color-primary); box-shadow: 0 0 0 4px rgba(102, 227, 196, 0.12); }
-main.container > .section:not([hidden]) { animation: section-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
-@media (max-width: 600px) {
-  .hero { margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-4); padding: 24px 20px 16px; }
-  .hero__title { font-size: 1.4rem; }
-  .hero__facts { display: grid; }
-  .hero__facts li { border-radius: 10px; }
-}
 
 /* The theory is a short first stage. Its next action starts the compact lab
    workspace, where the step rail and live dashboard share one viewport. */

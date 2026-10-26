@@ -477,6 +477,9 @@ window.Lab = window.Lab || {};
         }
       }
 
+      // The backlog machine (Lab.Backlog, backlog.js) sits under the topology diagram.
+      if (Lab.Backlog && engine && engine.on) Lab.Backlog.init(engine, document.getElementById('topology'));
+
       if (!visibilityBound) {
         visibilityBound = true;
         document.addEventListener('visibilitychange', function () { if (document.hidden) clearPackets(); });
@@ -505,6 +508,7 @@ window.Lab = window.Lab || {};
       emptyQueue();
       setStatus('Healthy');
       clearSelection();
+      if (Lab.Backlog) Lab.Backlog.reset();
     }
   };
 })(window.Lab);

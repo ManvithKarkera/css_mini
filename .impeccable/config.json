@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "tools/backlog/preview.html"
+        ],
+        "createdAt": "2026-10-26T13:56:00.164Z",
+        "reason": "model triage: the only pulse is lab.css .run-status.is-running live-dot, shown only while a simulation is actually running (live data); preview.html is a dev-only page that links lab.css"
+      }
+    ]
+  }
+}

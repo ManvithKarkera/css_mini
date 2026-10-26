@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backlog machine preview</title>
+  <!-- Dev only: the backlog figure on its own, driven by the real engine.
+       ?level=low|medium|high  ?mit=synCookies,rateLimit,shortTimeout,firewall  ?idle=1 -->
+  <link rel="stylesheet" href="../../css/base.css">
+  <link rel="stylesheet" href="../../css/lab.css">
+  <link rel="stylesheet" href="../../css/iso.css">
+  <link rel="stylesheet" href="../../css/backlog.css">
+  <style>main { max-width: 1000px; margin: 32px auto; padding: 0 16px; }</style>
+</head>
+<body>
+<main id="mount"></main>
+<script src="../../js/engine.js"></script>
+<script src="../../js/backlog-art.js"></script>
+<script src="../../js/backlog.js"></script>
+<script>
+  var q = new URLSearchParams(location.search);
+  var engine = Lab.Engine.create();
+  var mit = { synCookies: false, rateLimit: false, shortTimeout: false, firewall: false };
+  (q.get('mit') || '').split(',').forEach(function (k) { if (k in mit) mit[k] = true; });
+  engine.setMitigation(mit);
+  Lab.Backlog.init(engine, document.getElementById('mount'));
+  if (!q.get('idle')) engine.runAttack(q.get('level') || 'medium');
+</script>
+</body>
+</html>

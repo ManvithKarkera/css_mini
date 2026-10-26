@@ -10,11 +10,11 @@ const path = require('path');
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');
 
-const CSS_FILES = ['css/base.css', 'css/lab.css', 'css/workshop.css'];
+const CSS_FILES = ['css/base.css', 'css/lab.css', 'css/workshop.css', 'css/iso.css', 'css/backlog.css', 'css/theme.css'];
 // Contract load order (CONTRACT §5.1). mock-engine.js is dev only and is excluded.
 const JS_FILES = [
   'js/content.js', 'js/workshop-content.js', 'js/icons.js', 'js/engine.js',
-  'js/visuals.js', 'js/dashboard.js', 'js/quiz.js', 'js/workshop.js', 'js/terminal.js', 'js/workflow.js'
+  'js/backlog-art.js', 'js/backlog.js', 'js/visuals.js', 'js/dashboard.js', 'js/quiz.js', 'js/workshop.js', 'js/terminal.js', 'js/workflow.js'
 ];
 
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/\r\n/g, '\n');
@@ -22,15 +22,18 @@ const banner = (rel) => `/* ===== ${rel} ===== */\n`;
 
 fs.mkdirSync(DIST, { recursive: true });
 
+// fonts referenced as url("../fonts/x.woff2") are inlined so dist/ stays three files
+const inlineFonts = (css) => css.replace(/url\("\.\.\/fonts\/([^"]+\.woff2)"\)/g, (_, file) =>
+  'url("data:font/woff2;base64,' + fs.readFileSync(path.join(ROOT, 'fonts', file)).toString('base64') + '")');
 fs.writeFileSync(path.join(DIST, 'style.css'),
-  CSS_FILES.map((f) => banner(f) + read(f)).join('\n'));
+  inlineFonts(CSS_FILES.map((f) => banner(f) + read(f)).join('\n')));
 
 fs.writeFileSync(path.join(DIST, 'script.js'),
   JS_FILES.map((f) => banner(f) + read(f)).join('\n'));
 
 let html = read('index.html');
 html = html.replace(/[ \t]*<!-- build\.js replaces these (?:two )?links.*?-->\n/, '');
-html = html.replace(/[ \t]*<link rel="stylesheet" href="css\/base\.css">\n[ \t]*<link rel="stylesheet" href="css\/lab\.css">\n[ \t]*<link rel="stylesheet" href="css\/workshop\.css">\n/,
+html = html.replace(/(?:[ \t]*<link rel="stylesheet" href="css\/[a-z-]+\.css">\n)+/,
   '  <link rel="stylesheet" href="style.css">\n');
 html = html.replace(/<!-- build\.js replaces these script tags.*?-->\n(?:<script src="js\/[^"]+"><\/script>\n)+/,
   '<script src="script.js"></script>\n');

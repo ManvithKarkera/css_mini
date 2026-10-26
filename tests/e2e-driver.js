@@ -30,9 +30,11 @@
 
     // ---- step 1
     $('btn-start').click();
+    check(!$('section-theory').hidden && $('theory-content').textContent.length > 500, 'step 1: Start opens the theory, filled');
+    $('btn-next-workspace').click();
     check($('screen-guidelines').hidden && !$('stepper-section').hidden, 'step 1: Start hides the guidelines and shows the lab');
     check(statuses() === 'in-progress,locked,locked,locked,locked,locked,locked,locked,locked', 'step 1: stepper statuses (' + statuses() + ')');
-    check(!$('section-theory').hidden && $('theory-content').textContent.length > 500, 'step 1: theory is shown and filled');
+    check($('section-theory').hidden, 'step 1: the workspace replaces the theory');
     check($('btn-baseline').disabled && $('btn-start-flood').disabled && $('btn-stop').disabled, 'step 1: baseline, flood and stop are disabled');
     check(/Review the lab/.test($('step-title').textContent), 'step 1: step panel shows the step');
     continueBtn().click();

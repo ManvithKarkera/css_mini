@@ -1,0 +1,86 @@
+/* ==========================================================================
+   backlog.css — OWNER: Manvith Karkera
+   Purpose: the card around the backlog machine (Lab.Backlog) and the colours
+   of what moves in it. The drawing's own tones come from iso.css (generated);
+   here the card takes the lab's tokens so it sits with the other cards.
+   ========================================================================== */
+.backlog { margin: var(--space-5) 0 0; }
+.backlog.iso {
+  /* the figure paper matches the card it sits on */
+  --anatomy-card: var(--color-surface-2);
+  --anatomy-paper: var(--color-surface-2);
+}
+.backlog__plate {
+  position: relative;
+  background: var(--color-surface-2);
+  border-radius: 22px;
+  padding: 48px 20px 48px;
+  overflow: hidden;
+}
+.backlog__corners, .backlog__foot {
+  position: absolute; left: 22px; right: 22px;
+  display: flex; justify-content: space-between; gap: var(--space-3);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; color: var(--color-muted);
+  pointer-events: none;
+}
+.backlog__corners { top: 18px; }
+.backlog__foot { bottom: 18px; }
+.backlog__corners [data-corner="fig"] { color: var(--color-text); }
+.backlog__corners [data-corner="title"], .backlog__hint { text-transform: uppercase; letter-spacing: .1em; }
+.backlog__readout { color: var(--color-text); font-variant-numeric: tabular-nums; }
+.backlog__stage { max-width: 940px; margin: 0 auto; }
+
+.backlog__legend {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin-top: var(--space-3);
+  color: var(--color-muted); font-size: .875rem; line-height: 1.55;
+}
+.backlog__caption { flex: 1 1 100%; max-width: 72ch; }
+.backlog__key { display: inline-flex; align-items: center; gap: 8px; }
+.backlog__swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.backlog__swatch--legit  { background: var(--color-legit); }
+.backlog__swatch--attack { background: var(--color-attack); }
+.backlog__swatch--cookie { background: var(--color-surface); box-shadow: inset 0 0 0 2.5px var(--color-primary); }
+
+/* ---- what moves -------------------------------------------------------------- */
+.bk-svg .bk-mouth, .bk-svg .bk-tray-floor { fill: var(--anatomy-shade-0); }
+
+/* tags on the hooks: absent when the hook is free, coloured by who holds it */
+.bk-tag { transition: opacity .28s var(--anatomy-ease); }
+.bk-tag[data-kind="free"] { opacity: 0; }
+.bk-tag[data-kind="legit"], .bk-token[data-kind="legit"], .bk-token[data-kind="cookie"] {
+  --anatomy-paper: var(--color-legit);
+  --anatomy-top: color-mix(in srgb, var(--color-legit) 78%, #fff);
+  --anatomy-shade-0: color-mix(in srgb, var(--color-legit) 70%, #000);
+  --anatomy-shade-1: color-mix(in srgb, var(--color-legit) 78%, #000);
+  --anatomy-shade-2: color-mix(in srgb, var(--color-legit) 86%, #000);
+  --anatomy-shade-3: var(--color-legit);
+  --anatomy-hi: color-mix(in srgb, var(--color-legit) 60%, #000);
+  --anatomy-lo: color-mix(in srgb, var(--color-legit) 50%, #fff);
+}
+.bk-tag[data-kind="attack"], .bk-token[data-kind="attack"] {
+  --anatomy-paper: var(--color-attack);
+  --anatomy-top: color-mix(in srgb, var(--color-attack) 82%, #fff);
+  --anatomy-shade-0: color-mix(in srgb, var(--color-attack) 72%, #000);
+  --anatomy-shade-1: color-mix(in srgb, var(--color-attack) 80%, #000);
+  --anatomy-shade-2: color-mix(in srgb, var(--color-attack) 88%, #000);
+  --anatomy-shade-3: var(--color-attack);
+  --anatomy-hi: color-mix(in srgb, var(--color-attack) 55%, #000);
+  --anatomy-lo: color-mix(in srgb, var(--color-attack) 50%, #fff);
+}
+/* a stamped token keeps its colour and gains the cookie ring */
+.bk-token[data-kind="cookie"] .iso-line:not(.iso-edge) { stroke: #fff; stroke-width: 1.4px; }
+
+/* the gate blade turns to the danger colour while it is shut */
+[data-part="gate"][data-shut] .bk-blade { --anatomy-paper: var(--color-unavailable); --anatomy-top: color-mix(in srgb, var(--color-unavailable) 70%, #fff); --anatomy-shade-0: color-mix(in srgb, var(--color-unavailable) 75%, #000); --anatomy-shade-1: color-mix(in srgb, var(--color-unavailable) 85%, #000); --anatomy-shade-2: var(--color-unavailable); --anatomy-shade-3: var(--color-unavailable); }
+.bk-blade > .iso-fill, .bk-blade > .iso-top, .bk-blade > .iso-shade { transition: fill .2s; }
+
+.bk-needle { stroke-width: 1.2px; }
+.bk-hand { stroke-width: 1px; }
+
+@media (max-width: 560px) {
+  .backlog__plate { padding: 44px 8px 64px; }
+  .backlog__foot { flex-direction: column; gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bk-tag, .bk-blade > * { transition: none; }
+}

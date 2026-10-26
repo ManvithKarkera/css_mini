@@ -241,17 +241,7 @@ body.has-terminal { padding-bottom: min(56vh, 560px); }
 }
 @media (prefers-reduced-motion: reduce) { .term-guide__bar { transition: none; } }
 
-/* The workshop is the incident-response layer of the console. */
-.workshop { border-color: rgba(102, 227, 196, 0.22); }
 .ws-tabs { gap: 10px; }
-.ws-tab { background: rgba(7, 17, 31, 0.46); border-color: rgba(127, 180, 255, 0.12); border-radius: 12px; transition-property: transform, border-color, background-color; transition-duration: 150ms; }
-.ws-tab:hover { transform: translateY(-2px); border-color: rgba(102, 227, 196, 0.6); }
-.ws-tab[aria-selected="true"] { background: rgba(102, 227, 196, 0.1); border-color: var(--color-primary); }
-.ws-panel { background: rgba(7, 17, 31, 0.42); border: 1px solid rgba(127, 180, 255, 0.13); }
-.ws-opener, .ws-test, .ws-calc, .ws-incident__card { background: rgba(18, 37, 59, 0.7); border-color: rgba(127, 180, 255, 0.15); }
-.term-drawer { border-color: rgba(102, 227, 196, 0.34); box-shadow: 0 -20px 70px rgba(0, 0, 0, 0.5); }
-.term-drawer__bar { background: #0c1a2c; }
-.term-guide__card { border-left-color: var(--color-primary); }
 
 /* The terminal is a self-contained workspace so its runbook and prompt remain
    visible together without covering a strip of the page or extending below it. */
@@ -261,7 +251,7 @@ body.has-terminal::after {
   position: fixed;
   inset: 0;
   z-index: 59;
-  background: rgba(3, 9, 17, 0.76);
+  background: rgba(42, 44, 47, 0.5);
   backdrop-filter: blur(4px);
 }
 .term-drawer, .term-drawer.is-tall {
@@ -275,9 +265,9 @@ body.has-terminal::after {
   height: 92dvh;
   max-height: 920px;
   margin: auto;
-  border: 1px solid rgba(102, 227, 196, 0.4);
+  border: 1px solid #3d4044;
   border-radius: var(--radius);
-  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.62);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.5);
 }
 .term-drawer__bar { flex: none; border-radius: var(--radius) var(--radius) 0 0; }
 .term-drawer__actions { flex-wrap: wrap; }
