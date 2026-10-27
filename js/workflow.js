@@ -485,6 +485,8 @@ window.Lab = window.Lab || {};
     log('Experiment completed.', 'success');
     dlg.showModal();
     focusEl($('btn-review'));
+    // Unlock the certificate section
+    if (Lab.Certificate) Lab.Certificate.markComplete(new Date());
   }
 
   // ---- theory -------------------------------------------------------------------
@@ -532,7 +534,7 @@ window.Lab = window.Lab || {};
       openConfirm(toStart
         ? 'Restart the lab from the beginning? Your results, log and quiz progress will be cleared.'
         : 'Reset the experiment? Your results, log and quiz progress will be cleared and you will return to Step 1.',
-      function () { doReset(toStart); });
+        function () { doReset(toStart); });
     } else {
       doReset(toStart);
     }
@@ -560,6 +562,7 @@ window.Lab = window.Lab || {};
     resetRunStatus();
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     shownStep = 0;
+    if (Lab.Certificate) Lab.Certificate.reset();
 
     if (toStart) {
       started = false;
@@ -610,6 +613,11 @@ window.Lab = window.Lab || {};
       scrollToEl($('comparison'));
       focusEl($('comparison-heading'));
     });
+    $('btn-get-certificate').addEventListener('click', function () {
+      $('modal-complete').close();
+      var certSection = $('certificate-section');
+      if (certSection) { certSection.hidden = false; scrollToEl(certSection); focusEl($('cert-name-input')); }
+    });
 
     engine.on('runEnded', onRunEnded);
     engine.on('serverStateChange', onServerStateChange);
@@ -631,6 +639,7 @@ window.Lab = window.Lab || {};
     for (var n = 1; n <= STEP_COUNT; n++) setStatus(n, 'locked');
     wire();
     updateControls();
+    if (Lab.Certificate) Lab.Certificate.init();
     Lab.app = { engine: engine };                        // handy in the console while developing
   }
 

@@ -1,0 +1,700 @@
+/* ==========================================================================
+   certificate.css — OWNER: Meet Mangaonkar
+   Purpose: styles for the Lab Completion Certificate section and the
+   printable/downloadable certificate. Uses only design tokens from base.css.
+   ========================================================================== */
+
+/* ---- Certificate section (in-page) --------------------------------------- */
+#certificate-section {
+  grid-column: 1 / -1;
+}
+
+
+.topology-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topology-header h2 {
+  /* reset the .section > h2 rules that add margin/padding/border — we own the border now */
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.topology-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.topology-legend__title { display: none; }
+.topology-legend__list,
+.topology-legend__dot--pending,
+.topology-legend__dot--completed,
+.topology-legend__dot--rejected,
+.topology-legend__dot--filtered { display: none; }
+
+/* Each coloured chip */
+.topology-legend__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 7px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Colour swatch circle inside each chip */
+.topology-legend__swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* Blue chip — legitimate */
+.topology-legend__chip--legit {
+  background: #e8effe;
+  color: #1a56f0;
+  border: 1.5px solid #b8ccfb;
+}
+.topology-legend__chip--legit .topology-legend__swatch {
+  background: #1a56f0;
+}
+
+/* Charcoal chip — attack */
+.topology-legend__chip--attack {
+  background: #f0f0f1;
+  color: #36383c;
+  border: 1.5px solid #c8cace;
+}
+.topology-legend__chip--attack .topology-legend__swatch {
+  background: #36383c;
+}
+
+@media (max-width: 640px) {
+  .topology-header { flex-direction: column; align-items: flex-start; }
+  .topology-legend { gap: 6px; }
+}
+
+/* ---- Feedback form -------------------------------------------------------- */
+.feedback-wrap {
+  background: var(--color-surface-2);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  margin: var(--space-5) auto;
+  max-width: 640px;
+  width: 100%;
+}
+
+.feedback-wrap__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.feedback-wrap__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex: none;
+}
+
+.feedback-wrap__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: var(--color-text);
+}
+
+.feedback-wrap__sub {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.feedback-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feedback-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: var(--space-2);
+}
+
+.feedback-required {
+  color: #b42318;
+  margin-left: 2px;
+}
+
+/* Star rating */
+.feedback-rating {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.feedback-rating__star {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.feedback-rating__star input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.feedback-rating__star span {
+  font-size: 2rem;
+  color: var(--color-border);
+  transition: color 0.12s, transform 0.1s;
+  line-height: 1;
+}
+
+.feedback-rating__star:hover span,
+.feedback-rating__star:hover ~ .feedback-rating__star span,
+.feedback-rating.has-hover .feedback-rating__star--active span {
+  color: #f5a623;
+}
+
+.feedback-rating__star input:checked ~ span,
+.feedback-rating__star--filled span {
+  color: #f5a623;
+}
+
+.feedback-rating__star:hover span { transform: scale(1.2); }
+.feedback-rating__star input:focus-visible + span {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Textarea & select */
+.feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.feedback-textarea,
+.feedback-select {
+  width: 100%;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.feedback-textarea:focus,
+.feedback-select:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+.feedback-select {
+  min-height: 44px;
+  resize: none;
+  cursor: pointer;
+  appearance: auto;
+}
+
+/* Status message */
+.feedback-status {
+  font-size: 0.875rem;
+  min-height: 1.4em;
+  color: var(--color-muted);
+}
+.feedback-status.is-error { color: #b42318; }
+.feedback-status.is-success { color: var(--color-healthy); }
+
+/* Actions row */
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* Success state */
+.feedback-success {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-healthy) 10%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--color-healthy) 30%, transparent);
+  border-radius: var(--radius-sm);
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback-success__icon {
+  font-size: 1.5rem;
+  flex: none;
+}
+
+.feedback-success__msg {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-text);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Name wrap (revealed after feedback) */
+.certificate-name-wrap {
+  margin: var(--space-4) auto 0;
+  max-width: 640px;
+  width: 100%;
+}
+.certificate-name-wrap .certificate-form {
+  margin: 0;
+}
+
+/* hide feedback in print */
+@media print {
+  .feedback-wrap,
+  .certificate-name-wrap { display: none !important; }
+}
+
+
+.certificate-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 var(--space-5);
+}
+
+.certificate-intro__icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #4f8bff 100%);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  animation: cert-glow 3s ease-in-out infinite;
+}
+
+@keyframes cert-glow {
+  0%, 100% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-primary) 15%, transparent); }
+  50%       { box-shadow: 0 0 0 14px color-mix(in srgb, var(--color-primary) 6%, transparent); }
+}
+
+.certificate-intro__icon svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.certificate-intro__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.certificate-intro__sub {
+  margin: 0;
+  color: var(--color-muted);
+  max-width: 52ch;
+}
+
+/* Name input row — grid keeps button level with the input, not the label */
+.certificate-form {
+  display: grid;
+  /* [label-row] [input+button row] [error row] */
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "label  ."
+    "input  btn"
+    "error  .";
+  gap: 0 var(--space-3);
+  justify-items: start;
+  width: 100%;
+  max-width: 560px;
+  margin: var(--space-2) auto 0;
+}
+
+.certificate-form__field {
+  display: contents; /* let its children participate in the parent grid */
+}
+
+.certificate-form__field label {
+  grid-area: label;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  padding-bottom: var(--space-1);
+  align-self: end;
+}
+
+.certificate-form__field input {
+  grid-area: input;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-size: 1rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
+}
+
+.certificate-form__field input:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+.certificate-form__field input.is-invalid {
+  border-color: #b42318;
+}
+
+.certificate-form__error {
+  grid-area: error;
+  font-size: 0.8125rem;
+  color: #b42318;
+  min-height: 1.2em;
+  padding-top: 4px;
+}
+
+/* The generate button sits in the btn area, aligned with the input */
+#btn-generate-certificate {
+  grid-area: btn;
+  align-self: stretch; /* same height as the input */
+  white-space: nowrap;
+}
+
+@media (max-width: 540px) {
+  .certificate-form {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "label"
+      "input"
+      "btn"
+      "error";
+    max-width: 100%;
+  }
+  #btn-generate-certificate {
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+}
+
+
+/* ---- Certificate preview (the document itself) --------------------------- */
+#certificate-preview-wrap {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+#certificate-preview-wrap.is-hidden {
+  display: none;
+}
+
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* The certificate document */
+#certificate-doc {
+  width: 100%;
+  max-width: 860px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(28, 29, 32, 0.16);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Decorative top bar */
+#certificate-doc::before {
+  content: "";
+  display: block;
+  height: 10px;
+  background: linear-gradient(90deg, #102a63 0%, var(--color-primary) 50%, #4f8bff 100%);
+}
+
+.cert-inner {
+  padding: 52px 64px 48px;
+  text-align: center;
+  position: relative;
+}
+
+@media (max-width: 600px) {
+  .cert-inner { padding: 32px 24px 28px; }
+}
+
+/* Outer border frame */
+.cert-frame {
+  position: absolute;
+  inset: 18px;
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  border-radius: calc(var(--radius) - 6px);
+  pointer-events: none;
+}
+
+/* Watermark seal */
+.cert-seal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto var(--space-4);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #102a63 0%, #1a56f0 60%, #4f8bff 100%);
+  box-shadow:
+    0 0 0 5px #fff,
+    0 0 0 8px color-mix(in srgb, var(--color-primary) 30%, transparent),
+    0 8px 24px rgba(26, 86, 240, 0.3);
+}
+
+.cert-seal svg {
+  width: 44px;
+  height: 44px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Title */
+.cert-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.cert-title {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 700;
+  color: #102a63;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 var(--space-4);
+}
+
+/* Divider */
+.cert-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 auto var(--space-4);
+  max-width: 480px;
+}
+
+.cert-divider::before,
+.cert-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 40%, transparent));
+}
+.cert-divider::after {
+  background: linear-gradient(270deg, transparent, color-mix(in srgb, var(--color-primary) 40%, transparent));
+}
+
+.cert-divider-diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+/* Body text */
+.cert-presented {
+  font-size: 0.9375rem;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.cert-name {
+  font-size: clamp(1.625rem, 4.5vw, 2.5rem);
+  font-weight: 700;
+  color: #102a63;
+  letter-spacing: -0.01em;
+  font-style: italic;
+  line-height: 1.2;
+  margin: 0 0 var(--space-4);
+  border-bottom: 2px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  padding-bottom: var(--space-3);
+  display: inline-block;
+  min-width: 240px;
+}
+
+.cert-statement {
+  font-size: 0.975rem;
+  color: var(--color-text);
+  line-height: 1.7;
+  max-width: 56ch;
+  margin: 0 auto var(--space-4);
+}
+
+.cert-experiment {
+  display: inline-block;
+  font-weight: 700;
+  color: #102a63;
+}
+
+/* Footer row: date + institution */
+.cert-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.cert-footer-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+.cert-footer-col--right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.cert-footer-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.cert-footer-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Corner ornaments */
+.cert-ornament {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  opacity: 0.18;
+}
+
+.cert-ornament--tl { top: 30px; left: 30px; }
+.cert-ornament--tr { top: 30px; right: 30px; transform: scaleX(-1); }
+.cert-ornament--bl { bottom: 30px; left: 30px; transform: scaleY(-1); }
+.cert-ornament--br { bottom: 30px; right: 30px; transform: scale(-1); }
+
+/* ---- Print / PDF --------------------------------------------------------- */
+@media print {
+  /* Hide everything except the certificate */
+  body > *:not(#certificate-print-target) { display: none !important; }
+
+  #certificate-print-target {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  #certificate-doc {
+    max-width: none;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+
+  #certificate-doc::before { height: 12px; }
+
+  .cert-inner { padding: 40px 56px 36px; }
+
+  .certificate-actions,
+  #certificate-preview-wrap > :not(#certificate-doc),
+  .certificate-form,
+  .certificate-intro { display: none !important; }
+}
+
+/* ---- Dark theme support (follows theme.css pattern) ---------------------- */
+[data-theme="dark"] #certificate-doc,
+[data-theme="dark"] .cert-inner {
+  background: #1a1c20;
+}
+
+[data-theme="dark"] .cert-title,
+[data-theme="dark"] .cert-name,
+[data-theme="dark"] .cert-experiment {
+  color: #c5d9ff;
+}
+
+[data-theme="dark"] .cert-frame {
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
